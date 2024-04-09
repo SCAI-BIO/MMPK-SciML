@@ -88,7 +88,3 @@ target/
 
 # Mypy cache
 .mypy_cache/
-
-
-# VI
-/home/valderramanino/Pharmazie/Development_Pharmazie/src/models_indv_VI/train.py
