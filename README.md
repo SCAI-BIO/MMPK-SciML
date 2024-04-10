@@ -16,11 +16,9 @@ $ cd MMPKSciML
 
 Data can be made available upon reasonable request. Please contact the Department of Clinical Pharmacy at the University of Bonn!
 
-Prof. Dr. Ulrich Jaehde
+[Prof. Dr. Ulrich Jaehde](u.jaehde@uni-bonn.de)
 
 An der Immenburg 4, D-53121 Bonn (Germany) 
-
-u.jaehde@uni-bonn.de 
 
 +49 228 735252
 
