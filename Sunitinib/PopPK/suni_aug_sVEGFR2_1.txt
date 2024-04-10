@@ -1,0 +1,173 @@
+$PROBLEM    VEGFR2 SUNI CIV-001 EUTPKPD
+;; 1. Based on: Suni_VG2_final
+;; 2. Description: VEGFR2 SUNI CIV-001 EUTPKPD
+;; x1. Author: Achim Fritsch, edited by Olga Teplytska
+
+; AUGMENTATION sVEGFR2
+
+;-----------------------------------------
+
+;  UNITS                                  |
+
+;  TIME - HOURS                           |
+
+;  DOSE - UG                              |
+
+;  CP  - NG/ML  -> UG/L                   |
+
+;  LLOQ - 0.06 NG/ML                      |
+
+;  CL - L/HOUR                            |
+
+;  VOLUMES - L                            |
+
+;  VEGFR2 - PG/ML                         |
+
+;------------------------------------------
+$INPUT    C	SET_1	SET_2	SET_3	SET_4	SET_5	SET_6	SET_7	SET_8	SET_9	SET_10	ID	ETID=DROP	DAT=DROP	CTIME=DROP	TRTW	TIME	AMT	DOS	DV	MDV	EVID	CMT	TRTM	F_LAG	STUDY	CENTER	AGE	SEX	WEIGHT	HEIGHT	V2X	QHX	CLPX	CLMX	V3X	Q34X	V4X	FMX	Q25X	V5X
+
+
+$DATA      Suni_PD_template_sim_1.csv ; augmentation dataset for sVEGFR2 and sVEGFR3
+IGNORE=# 
+
+
+$SUBROUTINE ADVAN6 TOL=4
+$MODEL      NCOMP=7 COMP=(DEPOT,DEFDOSE) ; Dosing compartment
+            COMP=(OBSLIV) ; Sunitinib central compartment
+            COMP=(PERISUN) ; Sunitinib peripheral compartment
+            COMP=(CENTRALM) ; SU12662 central compartment
+            COMP=(PERIM) ; SU12662 peripheral compartment
+            COMP=(VEGFR2) ; sVEGFR3
+            COMP=(AUCV2) ; AUC comp
+$ABBREVIATED COMRES=2
+$PK 
+"FIRST
+" USE PRCOM_INT,ONLY:MITER,METH,IMAX,ISTFLG,INTFLG
+" MAIN
+" IMAX=200000000
+
+;PHARMACODYNAMIC 
+ ;System specific                    
+             
+ 
+ TVBLV2 = THETA(1)            ; Baseline
+ BLV2   = TVBLV2*EXP(ETA(1))
+ 
+ TVALFA = THETA(2)            ; Intrinsic activity
+
+TVALFA = ALFACOV*TVALFA
+ ALFA   = TVALFA*EXP(ETA(2))   
+
+ TVKOUT = THETA(3)            ; Kout
+ KOUT   = TVKOUT*EXP(ETA(3))  
+ 
+ A_0(6)=BLV2
+
+KIN = BLV2*KOUT
+                  
+ ;Drug specific                              
+ TVKD  = THETA(4)             ; Dissociation constant
+ KD    = TVKD*EXP(ETA(4))
+ 
+;PHARMACOKINETIC     
+
+K12    = 0.122     
+V2     = V2X
+QH     = QHX
+CLP    = CLPX
+CLM    = CLMX
+V3     = V3X
+Q34    = Q34X
+V4     = V4X
+FM     = FMX
+Q25    = Q25X  
+V5     = V5X   
+
+K34 = Q34/V3
+K43 = Q34/V4
+K25 = Q25/V2
+K52 = Q25/V5
+
+S2 = V2
+S3 = V3
+
+$DES 
+
+  CLIV = (K12*A(1) + QH/V2*A(2))/(QH+CLP)
+
+DADT(1) = -K12*A(1)
+DADT(2) = QH*CLIV-QH/V2*A(2) - K25*A(2) + K52*A(5)
+DADT(3) = FM*CLP*CLIV-CLM/V3*A(3)-K34*A(3) + K43*A(4)
+DADT(4) = K34*A(3)-K43*A(4)
+DADT(5) = K25*A(2) - K52*A(5)
+
+
+  ;TOTAL DRUG PLASMA CONCENTRATION  
+  CONC = A(3)/V3+A(2)/V2 
+  
+  ;FREE DRUG CONCENTRATION; 95% PB sunitinib, 90% PB SU12662
+  FC= A(3)/V3*(1-0.90)+A(2)/V2*(1-0.95)
+
+;VEGFR2
+  ;Kinase binding FUNCTION
+    IF(FC.LE.0) THEN
+      BND=0
+    ELSE 
+      BND=FC/(KD+FC)        ; Emax Modell
+    ENDIF 
+   ;Inhibitory signal
+    INH = BND    
+   ;Signal Function
+   SF=1/(1+ALFA*INH)
+  
+;RESPONSE COMPARTMENT ABSOLUTE SVEGFR2 LEVELS
+ ;SIGNAL INHIBITS KIN
+
+  DADT(6)= KIN*SF-KOUT*A(6)  
+  DADT(7)= A(6)/1000
+ 
+$ERROR 
+  MC    = A(3)/V3             ; METABOLITE CONC
+  PC    = A(2)/V2              ; PARENT CONC
+  AC    = MC+PC                ; ACTIVE CONCENTRATION
+  AUCV2 = A(7)
+  
+  IPRE   = A(6)
+  RBL    = IPRE/BLV2           ; PREDICTION RELATIVE TO AVERAGE BASELINE      
+  IRES   = DV-IPRE   
+  W      = THETA(5)*IPRE       ; Proportional error
+  Y      = IPRE+EPS(1)*W
+  DVRL   = DV/BLV2             ; DV RELATIVE TO AVERAGE BASELINE
+  
+  RESP  = 3                    ; RESPONSE FLAG
+
+  DEL            = 0
+  IF(W.EQ.0) DEL = 1
+  IWRE           = IRES/(W+DEL)
+
+$THETA
+(0, 9000) ; 1 THBLV2  - Baseline VEGFR2 Mean of Pop
+(0, 2.26) ; 2 THalfa  - intrinsic Efficacy
+(0, 0.00434) ; 3 THKOUT  - Kout
+(4) FIX ; 4 THKD    - Equilibrium Diss. const. from ligand-dependend proliferation assay (KD=0.004  M) Mena 2010
+(0, 0.121) ; 5 CV      - Proportional error for patients
+
+
+$OMEGA 0.04 ; 1 ETABLVR2
+$OMEGA 0 FIX ;  2 ETAalfa
+$OMEGA 0 FIX  ;  3 ETAKOUT
+$OMEGA 0 FIX  ;    4 ETAKD
+
+$SIGMA 1 FIX 
+
+$SIMULATION (12345) (54321) ONLYSIM SUBPROBLEMS=1000
+
+$TABLE ID TIME EVID AMT FC BLV2 DV DVRL RBL RESP IPRE IWRE IRES MDV CWRES NPDE NOPRINT ONEHEADER FILE=Suni_PD_2_augmentation.tab
+
+;$TABLE ID M1F2 TYPE NOPRINT ONEHEADER NOAPPEND FILE=catab
+
+;$TABLE ID AGE BW HGT CYC NOPRINT NOAPPEND ONEHEADER FILE=cotab
+
+;$TABLE ID BLV2 ALFA KOUT KIN KD NOPRINT NOAPPEND ONEHEADER FILE=PATAB
+
+;$TABLE ID FC DV TRTW TIME BLV2 ALFA KOUT IPRE RBL AUCV2 NOAPPEND NOPRINT ONEHEADER FILE=PATAB002

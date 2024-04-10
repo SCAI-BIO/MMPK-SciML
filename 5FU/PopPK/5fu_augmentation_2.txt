@@ -1,0 +1,61 @@
+$PROBLEM 5-FU PK model (1 compartment)
+;; 1. Based on: 5fu_pop_train_on_test
+;; 2. Description: 5-FU PK model (1 compartment)  Data Augmentation based on Train Estimation Values from FOCE-I 
+;; x1. Author: Eduard Schmulenson, edited by Olga Teplytska
+
+;; *with 23 (for Augmentation Set with 23)
+;; *without 23 (for Augmentation Set without 23)
+
+
+;; 3. Label: 5-FU PK model
+
+; FLAG: ID23, realistic outliers
+
+
+$INPUT ID	TIME	REGIME	CYC	MDV	DV	EVID	AGE	WT	HGT	SEX	BSA	AMT	RATE	LBM	FM
+
+
+$DATA DataAugmentation_dataset_split2.csv IGNORE=#
+
+$SUBROUTINES ADVAN1 TRANS2
+
+$PK
+;BSA as covariate on clearance, BSA centered on population mean
+CLBSA= (1+ THETA(4) * (BSA-1.93))
+CLCOV= CLBSA
+
+;Structural model
+TVCL=CLCOV*THETA(1)
+CL=TVCL*EXP(ETA(1))
+TVV=THETA(2)
+V=TVV*EXP(ETA(2))
+S1=V
+AUC=AMT/CL
+
+$ERROR
+IPRED=F
+DEL=0
+W=SQRT((THETA(3)*IPRED)**2) ;prop. error model
+Y=IPRED+W*EPS(1) 
+IF(W.EQ.0) DEL=0.0001
+IRES= DV*IPRED
+IWRES= IRES/(W+DEL)
+
+$THETA
+(0,218); CL
+46.1 FIX  ; V ; Wilhelm et al.
+(0, 0.228) ; prop. error
+(0.863) ;CLBSA
+
+$OMEGA
+0.0556 ; IIV CL
+0.511 FIX ; IIV V ; Wilhelm et al.
+
+$SIGMA 1 FIX
+
+$SIMULATION (12345) (54321) ONLYSIM SUBPROBLEMS=1000
+$TABLE ID AMT TIME REGIME RATE CYC MDV DV EVID AGE WT HGT SEX BSA LBM FM
+CWRES NOAPPEND ONEHEADER NOPRINT
+FILE= DataAugmentationSet_23_split2.tab
+
+
