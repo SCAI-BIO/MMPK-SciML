@@ -51,6 +51,6 @@ An der Immenburg 4, D-53121 Bonn (Germany)
 
 --------
 ## Contact
-- Prof. Dr. Holger Fröhlich: holger.froehlich@scai.fraunhofer.de
-- Diego Valderrama: diego.felipe.valderrama.nino@scai.fraunhofer.de
+- [Prof. Dr. Holger Fröhlich](mailto:holger.froehlich@scai.fraunhofer.de)
+- [Diego Valderrama](mailto:diego.felipe.valderrama.nino@scai.fraunhofer.de)
 - AI and Data Science Group, Bioinformatics Department, Fraunhofer Institute for Algorithms and Scientific Computing (SCAI), Schloss Birlinghoven, 1, 53757 Sankt Augustin.
