@@ -438,7 +438,7 @@ class Train(Solver):
 
                 # ODE
                 b = Conc.size(0)
-                pred_z = self.run_ODE(b, Doses, self.T)
+                pred_z = self.run_ODE(b, Doses, self.T1)
 
                 if self.config.type_loss == 'WMSE':
                     mse = self.config.lambda_mse * (((pred_z - Conc)**2)/Conc).sum(-1).mean()
