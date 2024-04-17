@@ -38,7 +38,7 @@ class Solver(object):
 
         self.Enc = MLP_Enc(self.config).to(self.device)
 
-        print('Models are build and have set to device')
+        print('Models are built and have set to device')
         if 'train' in self.config.mode:
             self.loss = RunningAverageMeter()
         self.get_optimizer()
@@ -82,7 +82,7 @@ class Solver(object):
         if 'train' in self.config.mode:
             self.optimizer.load_state_dict(weights['Opt'])
 
-        print('Models have loaded from epoch:', epoch)
+        print('Models have been loaded from epoch:', epoch)
 
     def save(self, epoch, loss, best=False):
 
