@@ -306,7 +306,7 @@ class Train(Solver):
 
             AUC, CL = AUC.numpy(), CL.numpy()
             Conc = Conc[:, 0].numpy()
-            pred_z = pred_Conc[:, 0].numpy()
+            pred_z = pred_Conc[:, 0, 0].numpy()
             pred_AUC = total_AUC[:, 0].numpy()
             pred_CL = total_CL[:, 0].numpy()
             V = total_V[:, 0].numpy()   
