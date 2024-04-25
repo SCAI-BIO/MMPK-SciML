@@ -1,6 +1,6 @@
-$PROBLEM 5-FU PK model (1 compartment)
+$PROBLEM 5-FU PK model (1 compartiment)
 ;; 1. Based on: 5fu_pop
-;; 2. Description: 5-FU PK model (1 compartment) Simulation based on train set estimates
+;; 2. Description: 5-FU PK model (1 compartiment) Simulation based on train set estimates
 
 ;; x1. Author: Eduard Schmulenson, edited by Olga Teplytska
 
@@ -22,7 +22,7 @@ $DATA 5fux_SCAI_test_sim_2.csv IGNORE=#
 $SUBROUTINES ADVAN1 TRANS2
 
 $PK
-CLBSA= (1+ THETA(4) * (BSA-1.93)) ;BSA as covariate on clearance, BSA centered on population mean
+CLBSA= (1+ THETA(4) * (BSA-1.93)) ;BSA as covariate on clearance, BSA centered on population median
 CLCOV= CLBSA
 
 ;Structural model

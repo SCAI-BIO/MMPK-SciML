@@ -1,6 +1,6 @@
-$PROBLEM 5-FU PK model (1 compartment)
+$PROBLEM 5-FU PK model (1 compartiment)
 ;; 1. Based on: 5fu_Bayeu
-;; 2. Description: 5-FU PK model (1 compartment)   FOCE-I
+;; 2. Description: 5-FU PK model (1 compartiment)   FOCE-I
 ;; x1. Author: Eduard Schmulenson, edited by Olga Teplytska
 ;; 3. Label: 5-FU PK model
 
@@ -17,7 +17,7 @@ $DATA NM_Data_final.csv IGNORE=# IGNORE(TRAIN_2.NE.1)
 $SUBROUTINES ADVAN1 TRANS2
 
 $PK
-;BSA as covariate on clearance, BSA centered on population mean
+;BSA as covariate on clearance, BSA centered on population median
 CLBSA= (1+ THETA(4) * (BSA-1.93))
 CLCOV= CLBSA
 
