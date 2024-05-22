@@ -49,6 +49,31 @@ An der Immenburg 4, D-53121 Bonn (Germany)
     │   ├── CML                    <- Code for the classic Machine Learning models
     │   └── PopPK                  <- Code for the PopPK model
 
+## Citation
+If this code is helpful in your research, please cite the following papers:
+
+@article{valderrama2024integrating,
+  title={Integrating machine learning with pharmacokinetic models: Benefits of scientific machine learning in adding neural networks components to existing PK models},
+  author={Valderrama, Diego and Ponce-Bobadilla, Ana Victoria and Mensing, Sven and Fr{\"o}hlich, Holger and Stodtmann, Sven},
+  journal={CPT: Pharmacometrics \& Systems Pharmacology},
+  volume={13},
+  number={1},
+  pages={41--53},
+  year={2024},
+  publisher={Wiley Online Library}
+}
+
+@article{valderrama2024scientific,
+  title={Scientific machine learning for predicting plasma concentrations in anti-cancer therapy},
+  author={Valderrama, Diego and Teplytska, Olga and Koltermann, Luca Marie and Trunz, Elena and Schmulenson, Eduard and Fritsch, Schim and Jaehde, Ulrich and Froehlich, Holger},
+  journal={medRxiv},
+  pages={2024--05},
+  year={2024},
+  publisher={Cold Spring Harbor Laboratory Press}
+}
+
+To download everything from this repository onto your local directory, execute the following line on your terminal:
+
 --------
 ## Contact
 - [Prof. Dr. Holger Fröhlich](mailto:holger.froehlich@scai.fraunhofer.de)
