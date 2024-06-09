@@ -5,7 +5,8 @@
 # this has been written in Python 3.11 and may not work the same in future versions!                                   #
 #                                                                                                                      #
 # data used:                                                                                                           #
-# Datensatz_AF_FK_Sunitinib_final_c.csv: dataset for every split with set column to be split on, corrected             #
+# corrected_full_10fold_data_5fu_fi_cyc_split_check.csv: dataset for every split with set column to be split on,       #
+# corrected                                                                                                            #
 ########################################################################################################################
 
 import pandas as pd
@@ -37,16 +38,17 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
-data = pd.read_csv("10fold_data_5fu_fi_cyc_split_check.csv", delimiter=',', encoding="utf-8")
+data = pd.read_csv("corrected_full_10fold_data_5fu_fi_cyc_split_check.csv", delimiter=',', encoding="utf-8")
 
+                     
 # drop times, blood counts and symptoms (proved to be not useful in previous analyses)
-columns_to_drop = ['Age_60', 'Therapy', 'Date_Infusion_Start', 'Time_Infusion_Start', 'Date_Infusion_End',
+columns_to_drop = ['Set_Run0','Age_60', 'Therapy', 'Date_Infusion_Start', 'Time_Infusion_Start', 'Date_Infusion_End',
                    'Time_Infusion_End', 'Date_Sampling', 'Time_Sampling', 'CL_new', 'AUC_new', 'Indication',
                    'Leukocytes', 'Neutrophils_Abs', 'Neutrophils', 'Erythrocytes', 'Haemoglobin',
                    'Haematocrit', 'Thrombocytes', 'Nausea', 'Emesis', 'Fatigue', 'Diarrhoea',
                    'Neutropenia_new', 'Thrombocytopenia', 'Hand_Foot', 'Stomatitis', 'Cycle']
 
-# convert DV to mg/L for consistency
+# convert DV to mg/L for consistency 
 data['DV'] = data['DV'] / 1000
 
 data = data.drop(columns=columns_to_drop)

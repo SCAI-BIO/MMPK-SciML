@@ -7,7 +7,8 @@ import torch
 from .datasets import *
 
 def load_data(config):
-    path = os.path.join(config.train_dir, '10fold_data_5fu_fi_cyc_split_check.csv')
+    # path = os.path.join(config.train_dir, 'full_10fold_data_5fu_fi_cyc_split_check.csv')
+    path = os.path.join(config.train_dir, 'corrected_full_10fold_data_5fu_fi_cyc_split_check.csv')
     data_complete = pd.read_csv(path)
     data_complete = data_complete.rename(columns={'Difference_Start_End_Infusion': 'Real_TSLD'})
     data_complete = data_complete.rename(columns={'CL_new ': 'CL'})
@@ -23,7 +24,6 @@ def load_data(config):
 
     # Converting the conc from ng/mL to mg/L
     data_complete.DV = data_complete.DV / 1000
-
     # We need to sort the date of taking the measurements
     size_ = len(data_complete.ID)
     aux = np.zeros(size_)
@@ -44,24 +44,6 @@ def load_data(config):
         data_complete.loc[i, 'Sampling_Month'] = int(m)
         data_complete.loc[i, 'Sampling_Year'] = int(y)
 
-    # removing around 9 entries which are outliers
-    # maybe only for the first set of experiments
-
-    if config.remove_outliers:
-        # outliers are those with a CL >= 739 (CL/h/m²) * 2 m²
-        # CL >= 1478
-
-        # Patient #60 is not an outlier because of his symptoms
-        delete_ = data_complete[data_complete.CL >= 1478]
-        no_delete_ = delete_[delete_.ID == 60]
-        delete_ = delete_.drop(no_delete_.index)
-        data_complete = data_complete.drop(delete_.index)
-
-        # outliers are also those with a DV > 3500 ng/ml 
-        # which means DV > 3.5 mg/L
-        delete_ = data_complete[data_complete.DV > 3.5]
-        data_complete = data_complete.drop(delete_.index)
-       
     for i, id in enumerate(data_complete.ID.unique()):
         data_id = data_complete[data_complete.ID == id].copy()
         data_id = data_id.sort_values(['Sampling_Year', 'Sampling_Month', 'Sampling_Day'])
@@ -69,7 +51,7 @@ def load_data(config):
         if i== 0:
             new_data_complete = data_id.copy()
         else:
-            new_data_complete = pd.concat((new_data_complete, data_id.copy()), 0).reset_index(drop=True) 
+            new_data_complete = pd.concat((new_data_complete, data_id.copy()), axis=0).reset_index(drop=True) 
 
     data_complete = new_data_complete.copy()
     size_ = len(data_complete.ID)
@@ -174,8 +156,8 @@ def load_data(config):
 
     data = pd.concat((data, data_norm[['DV', 'AMT']],
                       data_complete[['TSLD', 'Diff_T']],
-                      data_norm[data_norm.columns[2:]]), 1)
-    data_stat = pd.concat((data_stat[cov_stat[:2]], data_stat_norm[cov_stat[2:]]), 1)
+                      data_norm[data_norm.columns[2:]]), axis=1)
+    data_stat = pd.concat((data_stat[cov_stat[:2]], data_stat_norm[cov_stat[2:]]), axis=1)
 
     config.i_ssize = len(cov_stat) - 2 - 1 # Set
     # the position that AUC would be replaced by the TSLD
@@ -236,20 +218,38 @@ def preprocess_groups(data):
 
 def load_dataset(config):
     data, config = load_data(config)
-    data_train, data_val = split_patients(data)
-
-    dataset = IndM_Dataset(config, data_train)
-
-    if 'Same_Patients' in config.val_data_split:
-        data_val = data_train.copy() 
-        dataset_val = IndM_Dataset(config, data_train)
-        bs_val = len(data[0])
+    if config.fold == 0:
+        data_train, data_val = data, data
     else:
-        dataset_val = IndM_Dataset(config, data_val)
-        bs_val = len(data_val[0])
+        data_train, data_val = split_patients(data)
 
-    dataloader = get_loader(config, dataset)
-    dataloader_val = get_loader(config, dataset_val, bs_val)
+    if config.dataset == 'IndM':
+        dataset = IndM_Dataset(config, data_train)
+
+        if 'Same_Patients' in config.val_data_split:
+            data_val = data_train.copy() 
+            dataset_val = IndM_Dataset(config, data_train, val=True)
+            bs_val = len(data[0])
+        else:
+            dataset_val = IndM_Dataset(config, data_val, val=True)
+            bs_val = len(data_val[0])
+
+        dataloader = get_loader(config, dataset)
+        dataloader_val = get_loader(config, dataset_val, bs_val)
+    elif config.dataset == 'RepM':
+        data = preprocess_groups(data_train.copy())
+        dataset = Groups_Dataset(config, data)
+
+        if 'Same_Patients' in config.val_data_split:
+            data_val = preprocess_groups(data_train.copy())
+            dataset_val = Groups_Dataset(config, data_val)
+        else:
+            data_val = preprocess_groups(data_val)
+            dataset_val = Groups_Dataset(config, data_val)
+
+        dataloader = get_loader_dtp(config, dataset)
+        dataloader_val = get_loader_dtp(config, dataset_val)
+
 
     return config, dataloader, dataloader_val
 

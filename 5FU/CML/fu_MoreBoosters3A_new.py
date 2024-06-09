@@ -5,7 +5,7 @@
 # this has been written in Python 3.10 and may not work the same in future versions!                                   #
 #                                                                                                                      #
 # data used:                                                                                                           #
-# '5fu_data_preproc_aug0_split.csv': preprocessed data without augmentation  preprocessed data with set                #
+# '5fu_data_preproc_aug0_split.csv': preprocessed data without augmentation  preprocessed data with set               #
 #                                                                                                                      #
 # general note: cross_validate and cross_val_score need some negative metrics (like neg. MSE)                          #
 # because they expect that higher values are better. However, we want to report positive metrics; therefore            #
@@ -231,7 +231,6 @@ def run_xtreme_gradient_boosting_experiment(split, data_augmentation,
 # 1. with Feature Selection
 # 2. without Feature Selection
 ########################################################################################################################
-
 # Suppress LightGBM warnings
 warnings.filterwarnings("ignore", category=UserWarning, message="[LightGBM]")
 

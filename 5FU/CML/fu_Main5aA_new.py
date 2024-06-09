@@ -8,6 +8,8 @@
 # '5fu_data_preproc_aug0_split.csv': preprocessed data without augmentation  preprocessed data with set                #
 ########################################################################################################################
 
+# for training data augmentation, encode the percentage of augmented data you want to use in 'data_augmentation="0"'
+
 import fu_MLP_Regressor3A_new
 
 # Seed value
@@ -43,11 +45,9 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 job_array_id = int(os.environ.get('SLURM_ARRAY_TASK_ID', 0))
-
 ########################################################################################################################
 # Split 1                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 0:
     # Best parameters Multilayer Perceptron
     best_params_15 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -60,7 +60,7 @@ if job_array_id == 0:
                                                                 feature_selection=True,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_15,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 1:
     best_params_16 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -72,7 +72,7 @@ if job_array_id == 1:
                                                                 feature_selection=False,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_16,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 2:
     best_params_17 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
@@ -84,7 +84,7 @@ if job_array_id == 2:
                                                                feature_selection=True,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_17,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 if job_array_id == 3:
     best_params_18 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
         split="1", data_augmentation="0",
@@ -95,12 +95,11 @@ if job_array_id == 3:
                                                                feature_selection=False,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_18,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 
 ########################################################################################################################
 # Split 2                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 4:
     # Best parameters Multilayer Perceptron
     best_params_15 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -113,7 +112,7 @@ if job_array_id == 4:
                                                                 feature_selection=True,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_15,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 5:
     best_params_16 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -125,7 +124,7 @@ if job_array_id == 5:
                                                                 feature_selection=False,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_16,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 6:
     best_params_17 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
@@ -137,7 +136,7 @@ if job_array_id == 6:
                                                                feature_selection=True,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_17,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 if job_array_id == 7:
     best_params_18 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
         split="2", data_augmentation="0",
@@ -148,12 +147,11 @@ if job_array_id == 7:
                                                                feature_selection=False,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_18,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 
 ########################################################################################################################
 # Split 3                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 8:
     # Best parameters Multilayer Perceptron
     best_params_15 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -166,7 +164,7 @@ if job_array_id == 8:
                                                                 feature_selection=True,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_15,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 if job_array_id == 9:
     best_params_16 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
         split="3", data_augmentation="0",
@@ -177,7 +175,7 @@ if job_array_id == 9:
                                                                 feature_selection=False,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_16,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 10:
     best_params_17 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
@@ -189,7 +187,7 @@ if job_array_id == 10:
                                                                feature_selection=True,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_17,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 if job_array_id == 11:
     best_params_18 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
         split="3", data_augmentation="0",
@@ -200,12 +198,11 @@ if job_array_id == 11:
                                                                feature_selection=False,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_18,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 
 ########################################################################################################################
 # Split 4                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 12:
     # Best parameters Multilayer Perceptron
     best_params_15 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -218,7 +215,7 @@ if job_array_id == 12:
                                                                 feature_selection=True,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_15,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 13:
     best_params_16 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -230,7 +227,7 @@ if job_array_id == 13:
                                                                 feature_selection=False,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_16,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 14:
     best_params_17 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
@@ -242,7 +239,7 @@ if job_array_id == 14:
                                                                feature_selection=True,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_17,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 if job_array_id == 15:
     best_params_18 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
         split="4", data_augmentation="0",
@@ -253,12 +250,11 @@ if job_array_id == 15:
                                                                feature_selection=False,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_18,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 
 ########################################################################################################################
 # Split 5                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 16:
     # Best parameters Multilayer Perceptron
     best_params_15 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -271,7 +267,7 @@ if job_array_id == 16:
                                                                 feature_selection=True,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_15,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 17:
     best_params_16 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -283,7 +279,7 @@ if job_array_id == 17:
                                                                 feature_selection=False,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_16,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 18:
     best_params_17 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
@@ -295,7 +291,7 @@ if job_array_id == 18:
                                                                feature_selection=True,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_17,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 if job_array_id == 19:
     best_params_18 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
         split="5", data_augmentation="0",
@@ -306,12 +302,10 @@ if job_array_id == 19:
                                                                feature_selection=False,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_18,
-                                                               num_epochs=500)
-
+                                                               num_epochs=1000)
 ########################################################################################################################
 # Split 6                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 20:
     # Best parameters Multilayer Perceptron
     best_params_15 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -324,7 +318,7 @@ if job_array_id == 20:
                                                                 feature_selection=True,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_15,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 21:
     best_params_16 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -336,7 +330,7 @@ if job_array_id == 21:
                                                                 feature_selection=False,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_16,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 22:
     best_params_17 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
@@ -348,7 +342,7 @@ if job_array_id == 22:
                                                                feature_selection=True,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_17,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 if job_array_id == 23:
     best_params_18 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
         split="6", data_augmentation="0",
@@ -359,12 +353,10 @@ if job_array_id == 23:
                                                                feature_selection=False,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_18,
-                                                               num_epochs=500)
-
+                                                               num_epochs=1000)
 ########################################################################################################################
 # Split 7                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 24:
     # Best parameters Multilayer Perceptron
     best_params_15 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -377,7 +369,7 @@ if job_array_id == 24:
                                                                 feature_selection=True,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_15,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 25:
     best_params_16 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -389,7 +381,7 @@ if job_array_id == 25:
                                                                 feature_selection=False,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_16,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 26:
     best_params_17 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
@@ -401,7 +393,7 @@ if job_array_id == 26:
                                                                feature_selection=True,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_17,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 if job_array_id == 27:
     best_params_18 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
         split="7", data_augmentation="0",
@@ -412,12 +404,10 @@ if job_array_id == 27:
                                                                feature_selection=False,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_18,
-                                                               num_epochs=500)
-
+                                                               num_epochs=1000)
 ########################################################################################################################
 # Split 8                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 28:
     # Best parameters Multilayer Perceptron
     best_params_15 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -430,7 +420,7 @@ if job_array_id == 28:
                                                                 feature_selection=True,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_15,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 29:
     best_params_16 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -442,7 +432,7 @@ if job_array_id == 29:
                                                                 feature_selection=False,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_16,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 30:
     best_params_17 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
@@ -454,7 +444,7 @@ if job_array_id == 30:
                                                                feature_selection=True,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_17,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 if job_array_id == 31:
     best_params_18 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
         split="8", data_augmentation="0",
@@ -465,12 +455,10 @@ if job_array_id == 31:
                                                                feature_selection=False,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_18,
-                                                               num_epochs=500)
-
+                                                               num_epochs=1000)
 ########################################################################################################################
 # Split 9                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 32:
     # Best parameters Multilayer Perceptron
     best_params_15 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -483,7 +471,7 @@ if job_array_id == 32:
                                                                 feature_selection=True,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_15,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 33:
     best_params_16 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -495,7 +483,7 @@ if job_array_id == 33:
                                                                 feature_selection=False,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_16,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 34:
     best_params_17 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
@@ -507,7 +495,7 @@ if job_array_id == 34:
                                                                feature_selection=True,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_17,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 if job_array_id == 35:
     best_params_18 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
         split="9", data_augmentation="0",
@@ -518,12 +506,11 @@ if job_array_id == 35:
                                                                feature_selection=False,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_18,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 
 ########################################################################################################################
 # Split 10                                                                                                             #
 ########################################################################################################################
-
 if job_array_id == 36:
     # Best parameters Multilayer Perceptron
     best_params_15 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -536,7 +523,7 @@ if job_array_id == 36:
                                                                 feature_selection=True,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_15,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 37:
     best_params_16 = fu_MLP_Regressor3A_new.optimize_MLP_two_hidden_layers_hyperparameters(
@@ -548,7 +535,7 @@ if job_array_id == 37:
                                                                 feature_selection=False,
                                                                 algorithm_name="MLP_two_hidden_layers",
                                                                 best_params=best_params_16,
-                                                                num_epochs=500)
+                                                                num_epochs=1000)
 
 if job_array_id == 38:
     best_params_17 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
@@ -560,7 +547,7 @@ if job_array_id == 38:
                                                                feature_selection=True,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_17,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)
 if job_array_id == 39:
     best_params_18 = fu_MLP_Regressor3A_new.optimize_MLP_one_hidden_layer_hyperparameters(
         split="10", data_augmentation="0",
@@ -571,4 +558,4 @@ if job_array_id == 39:
                                                                feature_selection=False,
                                                                algorithm_name="MLP_one_hidden_layer",
                                                                best_params=best_params_18,
-                                                               num_epochs=500)
+                                                               num_epochs=1000)

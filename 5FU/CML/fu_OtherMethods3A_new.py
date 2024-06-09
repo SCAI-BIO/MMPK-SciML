@@ -5,7 +5,7 @@
 # this has been written in Python 3.10 and may not work the same in future versions!                                   #
 #                                                                                                                      #
 # data used:                                                                                                           #
-# '5fu_data_preproc_aug0_split.csv': preprocessed data without augmentation,  with column to be split on               #
+# '5fu_data_preproc_aug0_split.csv': preprocessed data without augmentation,  with column to be split on              #
 #                                                                                                                      #
 # general note: cross_val_score needs negative metrics (like neg. MSE)                                                 #
 # because it expects that higher values are better. However, we want to report positive metrics; therefore             #
@@ -353,6 +353,7 @@ def run_gradient_boosting_experiment(split, data_augmentation,
 # 1. with Feature Selection
 # 2. without Feature Selection
 ########################################################################################################################
+
 
 def optimize_support_vector_machine_hyperparameters(split, data_augmentation,
                                                     feature_selection, algorithm_name,

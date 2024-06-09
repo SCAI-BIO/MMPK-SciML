@@ -8,6 +8,8 @@
 # '5fu_data_preproc_aug0_split.csv': preprocessed data without augmentation  preprocessed data with set                #
 ########################################################################################################################
 
+# for training data augmentation, encode the percentage of augmented data you want to use in 'data_augmentation="0"'
+
 import fu_OtherMethods3A_new
 import fu_MoreBoosters3A_new
 import faulthandler
@@ -393,7 +395,6 @@ if job_array_id == 2:
 ########################################################################################################################
 # Split 4                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 3:
     # Best parameters Random Forest, Gradient Boosting, Support Vector Machine
     best_params_1 = fu_OtherMethods3A_new.optimize_random_forest_hyperparameters(
@@ -509,7 +510,6 @@ if job_array_id == 3:
 ########################################################################################################################
 # Split 5                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 4:
     # Best parameters Random Forest, Gradient Boosting, Support Vector Machine
     best_params_1 = fu_OtherMethods3A_new.optimize_random_forest_hyperparameters(
@@ -625,7 +625,6 @@ if job_array_id == 4:
 ########################################################################################################################
 # Split 6                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 5:
     # Best parameters Random Forest, Gradient Boosting, Support Vector Machine
     best_params_1 = fu_OtherMethods3A_new.optimize_random_forest_hyperparameters(
@@ -741,7 +740,6 @@ if job_array_id == 5:
 ########################################################################################################################
 # Split 7                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 6:
     # Best parameters Random Forest, Gradient Boosting, Support Vector Machine
     best_params_1 = fu_OtherMethods3A_new.optimize_random_forest_hyperparameters(
@@ -857,7 +855,6 @@ if job_array_id == 6:
 ########################################################################################################################
 # Split 8                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 7:
     # Best parameters Random Forest, Gradient Boosting, Support Vector Machine
     best_params_1 = fu_OtherMethods3A_new.optimize_random_forest_hyperparameters(
@@ -973,7 +970,6 @@ if job_array_id == 7:
 ########################################################################################################################
 # Split 9                                                                                                              #
 ########################################################################################################################
-
 if job_array_id == 8:
     # Best parameters Random Forest, Gradient Boosting, Support Vector Machine
     best_params_1 = fu_OtherMethods3A_new.optimize_random_forest_hyperparameters(
@@ -1089,7 +1085,6 @@ if job_array_id == 8:
 ########################################################################################################################
 # Split 10                                                                                                             #
 ########################################################################################################################
-
 if job_array_id == 9:
     # Best parameters Random Forest, Gradient Boosting, Support Vector Machine
     best_params_1 = fu_OtherMethods3A_new.optimize_random_forest_hyperparameters(

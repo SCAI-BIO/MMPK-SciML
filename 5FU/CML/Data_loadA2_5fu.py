@@ -5,8 +5,11 @@
 # this has been written in Python 3.10 and may not work the same in future versions!                                   #
 #                                                                                                                      #
 # data used: '5fu_data_preproc_aug0_split.csv', preprocessed data without augmentation                                 #
-# based on 10fold_data_5fu_fi_cyc_split_check.csv: dataset for every split with set column to be split on              #
+# based on corrected_full 10fold_data_5fu_fi_cyc_split_check.csv: dataset for every split with set column to split on  #
 ########################################################################################################################
+
+# for training data augmentation, encode the percentage of augmented data you want to use in 'data_augmentation="0"' in the examplary use
+# at the bottom of this document
 
 import pandas as pd
 import csv
@@ -32,13 +35,14 @@ import numpy as np
 np.random.seed(seed_value)
 
 # Define real and simulated patients, split dataset based on splitting variable
+
 def train_test_split(split="1", data_augmentation="0", feature_selection=False,
                      algorithm_name=None):
     X_train, y_train, X_test, y_test = None, None, None, None,
     selected_feature_names = []  # Initialize empty list
     selected_original_feature_names = []  # Initialize empty list
 
-    # csv_filename = f'5fu_data_split_{split}_aug_{data_augmentation}_preproc.csv' # data with simulated patients
+    # csv_filename = f'5fu_data_split_{split}_aug_{data_augmentation}_preproc_corr.csv' # data with simulated patients
     csv_filename = '5fu_data_split_0_aug_preproc.csv' # data without simulated patients
     data = pd.read_csv(csv_filename)
 
@@ -57,16 +61,16 @@ def train_test_split(split="1", data_augmentation="0", feature_selection=False,
     # all Set variables other than the one called need to be dropped
     run_to_drop = []
     for i in range(1, 11):
-        run_to_drop.append(f"""Set_{i}""")
-    run_to_drop.remove(f"""Set_{split}""")
+        run_to_drop.append(f"""Set_Run{i}""")
+    run_to_drop.remove(f"""Set_Run{split}""")
     cols_to_drop = run_to_drop + ['index', 'ID']
     data_select = data_select.drop(cols_to_drop, axis=1)
 
-    columns_to_drop2 = [f'Set_{split}']
+    columns_to_drop2 = [f'Set_Run{split}']
 
-    train_data = data_select[data_select[f'Set_{split}'] == 0]
+    train_data = data_select[data_select[f'Set_Run{split}'] == 0]
     train_data = train_data.drop(columns_to_drop2, axis=1)
-    test_data = data_select[data_select[f'Set_{split}'] == 1]
+    test_data = data_select[data_select[f'Set_Run{split}'] == 1]
     test_data = test_data.drop(columns_to_drop2, axis=1)
 
     # Extract features and labels

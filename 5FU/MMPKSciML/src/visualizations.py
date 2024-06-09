@@ -144,7 +144,7 @@ def pcVPC(data, epoch, save_path, log_y=False, lb=0,
         name = 'WithData_%s'%(name)
     save_name = os.path.join(save_path, name)
 
-    df_obs = data[data.REP == 1].copy()
+    df_obs = data[data.REPI == 1].copy()
     # PredCorr = df_obs.groupby(['TSLD_BIN'])['PRED'].median()
 
     # "left_join"
@@ -152,7 +152,7 @@ def pcVPC(data, epoch, save_path, log_y=False, lb=0,
 
     ObsStats = df_obs.copy()
     # Mutate
-    ObsStats['DVcorr'] = lb + ((ObsStats.DV-lb) * (ObsStats.PREDmed-lb) / (ObsStats.PRED-lb))
+    ObsStats['DVcorr'] = lb + ((ObsStats.DVORIG-lb) * (ObsStats.PREDmed-lb) / (ObsStats.PRED-lb))
     ObsStats['obsmed'] = ObsStats.groupby(['TSLD_BIN'])['DVcorr'].transform('median')
     obsmed = ObsStats.groupby(['TSLD_BIN'])['DVcorr'].median()
     obspmin = ObsStats.groupby(['TSLD_BIN'])['DVcorr'].quantile(q=alpha_2)
@@ -164,21 +164,21 @@ def pcVPC(data, epoch, save_path, log_y=False, lb=0,
         "obspmin":obspmin, "obspmax":obspmax}).reset_index(drop=True)
 
     df_pred = data.copy()
-    df_pred['PREDmed'] = df_pred.groupby(['TSLD_BIN', 'REP'])['PRED'].transform('median')
+    df_pred['PREDmed'] = df_pred.groupby(['TSLD_BIN', 'REPI'])['PRED'].transform('median')
     PredStats = df_pred.copy()
     PredStats['IPREDcorr'] = lb + ((PredStats.IPRED-lb) * (PredStats.PREDmed-lb) / (PredStats.PRED-lb))
-    med = PredStats.groupby(['TSLD_BIN', 'REP'])['IPREDcorr'].median()
-    pmin = PredStats.groupby(['TSLD_BIN', 'REP'])['IPREDcorr'].quantile(alpha_2)
-    pmax = PredStats.groupby(['TSLD_BIN', 'REP'])['IPREDcorr'].quantile(p_alpha_2)
+    med = PredStats.groupby(['TSLD_BIN', 'REPI'])['IPREDcorr'].median()
+    pmin = PredStats.groupby(['TSLD_BIN', 'REPI'])['IPREDcorr'].quantile(alpha_2)
+    pmax = PredStats.groupby(['TSLD_BIN', 'REPI'])['IPREDcorr'].quantile(p_alpha_2)
 
     tsld_u = df_pred.TSLD_BIN.unique()
     tsld_u.sort()
     tsld_df = pd.DataFrame({"TSLD_BIN":tsld_u})
-    rep_df = pd.DataFrame({"REP":df_pred.REP.unique()})
+    rep_df = pd.DataFrame({"REPI":df_pred.REPI.unique()})
 
     index_ = pd.merge(tsld_df, rep_df, how='cross')
     metrics_= pd.DataFrame({"med":med, "pmin":pmin, "pmax":pmax}).reset_index(drop=True)
-    PredStats = pd.concat((index_, metrics_),1)
+    PredStats = pd.concat((index_, metrics_), axis=1)
 
     medmed = PredStats.groupby(['TSLD_BIN'])['med'].median()
     pminmed = PredStats.groupby(['TSLD_BIN'])['med'].quantile(alpha_2)
@@ -192,8 +192,8 @@ def pcVPC(data, epoch, save_path, log_y=False, lb=0,
     pminpmax = PredStats.groupby(['TSLD_BIN'])['pmax'].quantile(alpha_2)
     pmaxpmax = PredStats.groupby(['TSLD_BIN'])['pmax'].quantile(p_alpha_2)
 
-    metrics_ = pd.concat((medmed, pminmed, pmaxmed, medpmin,  pminpmin, pmaxpmin, medpmax, pminpmax, pmaxpmax), 1).reset_index(drop=True)
-    PredStats = pd.concat((tsld_df, metrics_), 1)
+    metrics_ = pd.concat((medmed, pminmed, pmaxmed, medpmin,  pminpmin, pmaxpmin, medpmax, pminpmax, pmaxpmax), axis=1).reset_index(drop=True)
+    PredStats = pd.concat((tsld_df, metrics_), axis=1)
     PredStats.columns = ["TSLD_BIN", "medmed", "pminmed", "pmaxmed", "medpmin",  "pminpmin", "pmaxpmin", "medpmax", "pminpmax", "pmaxpmax"]
 
     metrics_pcVPC = pd.merge(ObsStats, PredStats)
@@ -229,5 +229,5 @@ def pcVPC(data, epoch, save_path, log_y=False, lb=0,
     if log_y:
         plot_ += scale_y_log10()
     if plot_data:
-        plot_ += geom_point(data=df_obs, mapping=aes(x='TSLD_REAL',y='DV'), alpha=0.3)
+        plot_ += geom_point(data=df_obs, mapping=aes(x='TSLD_REAL',y='DVORIG'), alpha=0.3)
     plot_.save(save_name, height=5, width=7, dpi=400)

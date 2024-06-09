@@ -27,6 +27,11 @@ class Train(Solver):
         else:
             self.run()
             print('Training has finished')
+            self.config.from_best = True
+            self.config.val_data_split = 'Same_Patients'
+            self.load_models()
+            self.validate()
+            print('Validation with the best model has finished')
 
     @torch.no_grad()
     def get_tsld_bin(self, tsld, bins):
@@ -91,7 +96,7 @@ class Train(Solver):
                 os.path.join(self.config.save_path_samples,
                              'Val_Imgs_Same_Patients'),
                 'Results_Ep%d.pth'%(self.config.epoch_init))
-        
+
             TP_data = torch.load(results_SP)
             etas_TP = TP_data['Total_Etas']
             num_etas = etas_TP.size(-1)
@@ -161,6 +166,10 @@ class Train(Solver):
             else:
                 eta_V = None
 
+            # total_CL_ = total_CL.clone().view(-1)
+            # CL_ = CL.clone().unsqueeze(-1).repeat(1, nruns_ppd)
+            # CL_ = CL_.view(-1)
+
             # The metrics as well as the GOF plots need to be done with the
             # patient specific mean
             # Calculating the Trajectory with the Eta mean
@@ -213,16 +222,21 @@ class Train(Solver):
 
             torch.save(data_save, 
                 os.path.join(save_path, 'Results_Ep%d.pth'%(epoch)))
-            
+
+            Etas_Samples = torch.log(total_CL/ torch.exp(self.ODE.CL_pop)).numpy()
+            Etas = eta_means[:, 0]
+
             T_Fig = T_Fig.detach().cpu().float()
             PTNO, REP, TIME, TSLD, TSLD_REAL = [], [], [], [], []
             AMT, DV, IPRED, PRED, PRED_PTNO = [], [], [], [], []
             GOF_PTNO = []
+            ETAS, ETAS_S = [], []
             pat_num = Conc.shape[0]
 
             for nrun in range(nruns_ppd):
                 obs_rep = Conc[:, nrun]
                 ipred_rep = pred_Conc[:, nrun]
+                eta_samp_rep =  Etas_Samples[:, nrun]
 
                 for ptno in range(pat_num):
                     obs_ptno = obs_rep[ptno]
@@ -230,6 +244,8 @@ class Train(Solver):
                     dose_ptno = Doses[ptno, 0]
                     PRED_ptno = PRED_SEQ[ptno, 0]
                     GOF_ptno = GOF_SEQ[ptno, 0]
+                    eta_ptno = Etas[ptno]
+                    eta_samp_ptno = eta_samp_rep[ptno]
 
                     PTNO.append(torch.tensor(ptno))
                     REP.append(torch.tensor(nrun + 1))
@@ -242,6 +258,8 @@ class Train(Solver):
                     TIME.append(T_Fig[-1]*24)
                     TSLD.append(T_Fig[-1]*24)
                     TSLD_REAL.append(real_TSLD[ptno, 0])
+                    ETAS_S.append(eta_samp_ptno)
+                    ETAS.append(eta_ptno)
 
             PTNO = torch.stack(PTNO).numpy()
             REP = torch.stack(REP).numpy()
@@ -254,24 +272,47 @@ class Train(Solver):
             IPRED = torch.stack(IPRED).numpy()
             PRED_PTNO = torch.stack(PRED_PTNO).numpy()
             GOF_PTNO = torch.stack(GOF_PTNO).numpy()
-            
-            data = pd.DataFrame({'PTNO':PTNO, 'REP': REP, 'TSLD_ODE': TSLD,
-                                 'TSLD_REAL': TSLD_REAL, 'TIME':TIME, 'AMT':AMT,
-                                 'DV': DV, 'PRED': PRED_PTNO, 'IPRED': IPRED,
-                                 'GOF_IPRED':GOF_PTNO})
+            ETAS_S = np.stack(ETAS_S)
+            ETAS = np.stack(ETAS)
 
-            data_rep1 = data[data.REP == 1]
-            save_metrics(data_rep1.DV, data.GOF_IPRED, save_path, epoch, name_='Conc')
+            df_vpc = pd.DataFrame({'PTNO':PTNO, 'REPI':REP, 'TIME':TIME,
+                                   'TSLD_ODE':TSLD, 'TSLD_REAL': TSLD_REAL,
+                                   'AMT':AMT, 'DVORIG':DV, 'PRED':PRED_PTNO,
+                                   'IPRED':IPRED, 'ETA_CL':ETAS_S})
+
+            df_est = pd.DataFrame({'PTNO':PTNO, 'REPI':REP, 'TIME':TIME,
+                                   'TSLD_ODE':TSLD, 'TSLD_REAL': TSLD_REAL,
+                                   'AMT':AMT, 'DV':DV, 'PRED':PRED_PTNO,
+                                   'IPRED':GOF_PTNO, 'ETA_CL':ETAS})
+            df_est = df_est[df_est.REPI == 1]
+            df_est.drop('REPI', axis=1)
+            # handling method for data below the limit of quantification
+            # loq = 2 * data[data.REP == 1].DV.min()
+            # data.loc[data.DV < loq, 'DV'] = loq/2
+            # data.loc[data.PRED < loq, 'PRED'] = loq/2
+            # data.loc[data.IPRED < loq, 'IPRED'] = loq/2
+            save_metrics(df_est.DV, df_est.IPRED, save_path, epoch, name_='Conc')
+
+            raw_path = os.path.join(save_path, 'Raw_Output')
+            os.makedirs(raw_path, exist_ok=True)
+            path = os.path.join(raw_path, 'VPC_Output_EP%d.csv'%(epoch))
+            df_vpc.to_csv(path, index=False)
+            path = os.path.join(raw_path, 'Estimation_Output_EP%d.csv'%(epoch))
+            df_est.to_csv(path, index=False)
 
             path_ = os.path.join(save_path, 'pcVPC')
             os.makedirs(path_, exist_ok=True)
 
-            data_ode_tsld = data.copy()
+            data_ode_tsld = df_vpc.copy()
             data_ode_tsld = data_ode_tsld.rename(columns={'TSLD_ODE': 'TSLD_BIN'})
             pcVPC(data_ode_tsld, epoch, path_, log_y=True, lb=0, confidence=0.9)
 
-            data_real_tsld = data.copy()
+            data_real_tsld = df_vpc.copy()
 
+            # bins = self.config.nbins
+            # cp = np.linspace(0.0, 1.0, bins + 1) # , dtype=t_tsld)
+            # cc = (cp[:bins] + cp[1:])/2
+            # bins = np.quantile(data_real_tsld.TSLD_REAL, cc)
             bins = np.array((17, 18, 18.5, 20))
             if 'New' in self.config.val_data_split:
                 if self.config.fold == 2:
@@ -293,6 +334,7 @@ class Train(Solver):
             tsld_bin = self.get_tsld_bin(tsld_, bins)
             data_real_tsld['TSLD_BIN'] = tsld_bin
 
+            # data_real_tsld = data_real_tsld.rename(columns={'TSLD_REAL': 'TSLD_BIN'})
             pcVPC(data_real_tsld, epoch, path_, log_y=True,
                   real_tsld=True, lb=0, confidence=0.9,
                   bins=bins)
@@ -301,9 +343,8 @@ class Train(Solver):
                   bins=bins, plot_data=True)
 
             save_name = os.path.join(save_path, 'GOF_Conc_Ep%d.png'%(epoch))
-            gof_plot(data_rep1.DV, data.GOF_IPRED, save_name)
+            gof_plot(df_est.DV, df_est.IPRED, save_name)
         else:
-
             AUC, CL = AUC.numpy(), CL.numpy()
             Conc = Conc[:, 0].numpy()
             pred_z = pred_Conc[:, 0, 0].numpy()
@@ -385,6 +426,7 @@ class Train(Solver):
         for idx, (t0, t1) in enumerate(zip(Time_ODE[:-1], Time_ODE[1:])):
 
             self.ODE.update_dose(Doses[:, 0])
+            # z_init[:, 0] = z_init[:, 0] + Doses[:, 0] / self.ODE.i_time
             time_interval = torch.Tensor([t0 - t0, t1 - t0]).to(self.device)
             sol = odeint(self.ODE, z_init, time_interval, rtol=self.rtol,
                         atol=self.atol, method=self.method).permute(1, 0, 2)
@@ -439,6 +481,11 @@ class Train(Solver):
                 # ODE
                 b = Conc.size(0)
                 pred_z = self.run_ODE(b, Doses, self.T1)
+
+                if self.config.trans_output == 'log':
+                    Conc, pred_z = torch.log(Conc), torch.log((pred_z))
+                elif self.config.trans_output == 'arcsinh':
+                    Conc, pred_z = torch.arcsinh(Conc), torch.arcsinh((pred_z))
 
                 if self.config.type_loss == 'WMSE':
                     mse = self.config.lambda_mse * (((pred_z - Conc)**2)/Conc).sum(-1).mean()

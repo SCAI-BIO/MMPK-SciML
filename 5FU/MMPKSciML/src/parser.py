@@ -24,7 +24,7 @@ def base_parser():
     parser.add_argument('--train_dir', type=str,
                         default='/home/valderramanino/Pharmazie/Development/Development_Pharmazie/data')
     parser.add_argument('--save_path', type=str,
-                        default='/home/valderramanino/Pharmazie/Development/Development_Pharmazie/models/5FU')
+                        default='/home/valderramanino/Pharmazie/Development/Development_Pharmazie/models/MMPKSciML/5FU')
     parser.add_argument('--exp_name', type=str,
                         default='debug')
     parser.add_argument('--val_data_split', type=str,
@@ -33,8 +33,6 @@ def base_parser():
                                  'New_Patients',
                                  'New_Patients_PostDist'])
     parser.add_argument('--load_CL_V', type=bool,
-                        default=False)
-    parser.add_argument('--remove_outliers', type=bool,
                         default=False)
     parser.add_argument('--train_test', type=bool,
                         default=False)
@@ -123,6 +121,9 @@ def base_parser():
     parser.add_argument('--act_var', type=str,
                         default='none',
                         choices=['none', 'relu', 'tanh', 'selu', 'softplus', 'sigmoid'])
+    parser.add_argument('--trans_output', type=str,
+                        default='none',
+                        choices=['none', 'log', 'arcsinh'])
     parser.add_argument('--dim_params', type=int,
                         default=2,
                         help='CL and V')
