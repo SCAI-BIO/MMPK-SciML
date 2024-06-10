@@ -10,7 +10,7 @@ def base_parser():
     parser.add_argument('--dataset', type=str,
                         default='IndM',
                         choices=['IndM'],
-                        help='Repeat Measurements, Individual Measurements and DiffTime Patients')
+                        help='Individual Measurements')
     parser.add_argument('--covariates', type=str,
                         default='Basic',
                         choices=['Basic', 'Basic_Lab',
@@ -39,7 +39,7 @@ def base_parser():
     parser.add_argument('--nruns_ppd_pp', type=int,
                         default=100,
                         help='Number of runs for appx the PPD per patient')
-    parser.add_argument('--scaler', type=str, # Maybe I can delete it
+    parser.add_argument('--scaler', type=str,
                         default='none',
                         choices=['manual', 'standard', 'minmax', 'none'])
     parser.add_argument('--nbins', type=int,

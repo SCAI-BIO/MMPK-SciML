@@ -77,6 +77,7 @@ class Train(Solver):
         b = Conc.size(0)
         total_real = list()
         total_pred = list()
+        total_pred_f = list()
         total_CL = list()
         total_AUC = list()
         total_V = list()
@@ -118,13 +119,14 @@ class Train(Solver):
 
             # ODE
             b = Conc.size(0)
-            pred_z = self.run_ODE(b, Doses, T_Fig)
+            pred_z, pred_f = self.run_ODE(b, Doses, T_Fig, full=True)
             pred_AUC = Doses / self.ODE.CL
 
             # total real and total pred have the complete time series
             # according to the val time horizon
             total_real.append(Conc)
             total_pred.append(pred_z.unsqueeze(-1))
+            total_pred_f.append(pred_f.unsqueeze(1))
             total_CL.append(self.ODE.CL)
             total_AUC.append(pred_AUC)
             if self.config.type_ode == 'PPCL_PopV':
@@ -135,6 +137,7 @@ class Train(Solver):
 
         Conc = torch.cat(total_real, 1).detach().cpu().float()
         pred_Conc = torch.cat(total_pred, 1).detach().cpu().float()
+        pred_Conc_f = torch.cat(total_pred_f, 1).detach().cpu().float()
         total_CL = torch.cat(total_CL, 1).detach().cpu().float()
         total_AUC = torch.cat(total_AUC, 1).detach().cpu().float()
         total_V = torch.cat(total_V, 1).detach().cpu().float()
@@ -144,7 +147,6 @@ class Train(Solver):
         CL = CL[:, 0].cpu().float()
 
         if val:
-
             path_ = os.path.join(save_path, 'Etas')
             os.makedirs(path_, exist_ok=True)
 
@@ -165,10 +167,6 @@ class Train(Solver):
                     dname=ename, name='V')
             else:
                 eta_V = None
-
-            # total_CL_ = total_CL.clone().view(-1)
-            # CL_ = CL.clone().unsqueeze(-1).repeat(1, nruns_ppd)
-            # CL_ = CL_.view(-1)
 
             # The metrics as well as the GOF plots need to be done with the
             # patient specific mean
@@ -199,7 +197,7 @@ class Train(Solver):
             # The Etas need to be 0
             PRED_params = torch.zeros(b, self.config.dim_params).to(self.device)
             self.ODE.update_params(PRED_params)
-            PRED_SEQ = self.run_ODE(b, Doses, T_Fig)
+            PRED_SEQ, PRED_SEQ_F = self.run_ODE(b, Doses, T_Fig, full=True)
             PRED_ = PRED_SEQ.mean().detach().cpu().float()
 
             data_save = {}
@@ -286,11 +284,7 @@ class Train(Solver):
                                    'IPRED':GOF_PTNO, 'ETA_CL':ETAS})
             df_est = df_est[df_est.REPI == 1]
             df_est.drop('REPI', axis=1)
-            # handling method for data below the limit of quantification
-            # loq = 2 * data[data.REP == 1].DV.min()
-            # data.loc[data.DV < loq, 'DV'] = loq/2
-            # data.loc[data.PRED < loq, 'PRED'] = loq/2
-            # data.loc[data.IPRED < loq, 'IPRED'] = loq/2
+
             save_metrics(df_est.DV, df_est.IPRED, save_path, epoch, name_='Conc')
 
             raw_path = os.path.join(save_path, 'Raw_Output')
@@ -309,10 +303,6 @@ class Train(Solver):
 
             data_real_tsld = df_vpc.copy()
 
-            # bins = self.config.nbins
-            # cp = np.linspace(0.0, 1.0, bins + 1) # , dtype=t_tsld)
-            # cc = (cp[:bins] + cp[1:])/2
-            # bins = np.quantile(data_real_tsld.TSLD_REAL, cc)
             bins = np.array((17, 18, 18.5, 20))
             if 'New' in self.config.val_data_split:
                 if self.config.fold == 2:
@@ -334,7 +324,6 @@ class Train(Solver):
             tsld_bin = self.get_tsld_bin(tsld_, bins)
             data_real_tsld['TSLD_BIN'] = tsld_bin
 
-            # data_real_tsld = data_real_tsld.rename(columns={'TSLD_REAL': 'TSLD_BIN'})
             pcVPC(data_real_tsld, epoch, path_, log_y=True,
                   real_tsld=True, lb=0, confidence=0.9,
                   bins=bins)
@@ -344,6 +333,46 @@ class Train(Solver):
 
             save_name = os.path.join(save_path, 'GOF_Conc_Ep%d.png'%(epoch))
             gof_plot(df_est.DV, df_est.IPRED, save_name)
+
+            # Getting data for the full output
+            PTNO, REP, TIME = [], [], []
+            DV, IPRED, PRED = [], [], []
+
+            for nrun in range(nruns_ppd):
+                obs_rep = Conc[:, nrun]
+                ipred_rep = pred_Conc_f[:, nrun]
+
+                for ptno in range(pat_num):
+                    ipred_ptno = ipred_rep[ptno]
+                    pred_ptno = PRED_SEQ_F[ptno]
+
+                    obs_ptno = torch.zeros_like(ipred_ptno)
+                    obs_ptno[-1] = obs_rep[ptno]
+
+                    rep_ = torch.ones_like(ipred_ptno) + nrun
+                    ptno = torch.zeros_like(ipred_ptno) + ptno
+                    PTNO.append(ptno)
+                    REP.append(rep_)
+                    DV.append(obs_ptno)
+                    IPRED.append(ipred_ptno)
+                    PRED.append(pred_ptno)
+                    TIME.append(T_Fig*24)
+
+            PTNO = torch.cat(PTNO).numpy()
+            REP = torch.cat(REP).numpy()
+            TIME = torch.cat(TIME).numpy()
+            DV = torch.cat(DV).numpy()
+            IPRED = torch.cat(IPRED).numpy()
+            PRED = torch.cat(PRED).numpy()
+
+            df_f = pd.DataFrame({'PTNO':PTNO, 'REPI':REP, 'TIME':TIME,
+                                 'DV':DV, 'IPRED':IPRED, 'PRED':PRED})
+            ids = np.random.permutation(df_f.PTNO.unique())[:10]
+
+            path_ = os.path.join(save_path, 'Individual_Plots')
+            os.makedirs(path_, exist_ok=True)
+            individual_plots(df_f, ids, path_, md=True)
+
         else:
             AUC, CL = AUC.numpy(), CL.numpy()
             Conc = Conc[:, 0].numpy()
@@ -412,7 +441,7 @@ class Train(Solver):
                 writer.writerow(header)
             writer.writerow(data)
 
-    def run_ODE(self, b, Doses, Time_ODE):
+    def run_ODE(self, b, Doses, Time_ODE, full=False):
 
         if self.config.solver == 'Adjoint':
             from torchdiffeq import odeint_adjoint as odeint
@@ -433,8 +462,16 @@ class Train(Solver):
             z_init = sol[:, -1].clone()  # To avoid in-place operations
             pred_z = torch.cat((pred_z, sol[:, -1:, :]), 1)
 
-        pred_z = pred_z[:, -1:, -1]/self.ODE.V
-        return pred_z
+        if full:
+            pred_f = pred_z[:, :, -1]/self.ODE.V
+            pred_z = pred_z[:, -1:, -1]/self.ODE.V
+            return pred_z, pred_f
+        else:
+            pred_z = pred_z[:, -1:, -1]/self.ODE.V
+            return pred_z
+
+        # pred_z = pred_z[:, -1:, -1]/self.ODE.V
+        # return pred_z
 
     def run(self):
 

@@ -7,7 +7,6 @@ import torch
 from .datasets import *
 
 def load_data(config):
-    # path = os.path.join(config.train_dir, 'full_10fold_data_5fu_fi_cyc_split_check.csv')
     path = os.path.join(config.train_dir, 'corrected_full_10fold_data_5fu_fi_cyc_split_check.csv')
     data_complete = pd.read_csv(path)
     data_complete = data_complete.rename(columns={'Difference_Start_End_Infusion': 'Real_TSLD'})
@@ -193,29 +192,6 @@ def split_patients(data):
 
     return [data, data_stat], [data_val, data_val_stat]
 
-def preprocess_groups(data):
-
-    data, data_stat = data
-
-    groups_l, groups_s = {}, {}
-
-    for i, id in enumerate(data.New_ID.unique()):
-        l_data = data[data.New_ID == id]
-        s_data = data_stat[data_stat.New_ID == id]
-        t, _ = l_data.shape
-
-        name = 'Group_%d'%(t)
-        try:
-            current_l= groups_l[name]
-            current_s= groups_s[name]
-            groups_l[name] = pd.concat((current_l, l_data))
-            groups_s[name] = pd.concat((current_s, s_data))
-        except:
-            groups_l[name] = l_data
-            groups_s[name] = s_data
-
-    return [groups_l, groups_s]
-
 def load_dataset(config):
     data, config = load_data(config)
     if config.fold == 0:
@@ -236,33 +212,9 @@ def load_dataset(config):
 
         dataloader = get_loader(config, dataset)
         dataloader_val = get_loader(config, dataset_val, bs_val)
-    elif config.dataset == 'RepM':
-        data = preprocess_groups(data_train.copy())
-        dataset = Groups_Dataset(config, data)
-
-        if 'Same_Patients' in config.val_data_split:
-            data_val = preprocess_groups(data_train.copy())
-            dataset_val = Groups_Dataset(config, data_val)
-        else:
-            data_val = preprocess_groups(data_val)
-            dataset_val = Groups_Dataset(config, data_val)
-
-        dataloader = get_loader_dtp(config, dataset)
-        dataloader_val = get_loader_dtp(config, dataset_val)
 
 
     return config, dataloader, dataloader_val
-
-def get_loader_dtp(config, dataset):
-    pm = True if torch.cuda.is_available() else False
-    dataloader = torch.utils.data.DataLoader(
-        dataset = dataset,
-        batch_size = 1,
-        shuffle = True,
-        num_workers=config.num_workers,
-        pin_memory=pm,
-        drop_last = False)
-    return dataloader
 
 
 def get_loader(config, dataset, bs=None):

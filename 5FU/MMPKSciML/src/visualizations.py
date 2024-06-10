@@ -231,3 +231,45 @@ def pcVPC(data, epoch, save_path, log_y=False, lb=0,
     if plot_data:
         plot_ += geom_point(data=df_obs, mapping=aes(x='TSLD_REAL',y='DVORIG'), alpha=0.3)
     plot_.save(save_name, height=5, width=7, dpi=400)
+
+
+def individual_plots(data, ids, save_path, md=False):
+
+    if md:
+        aux_n = ' (Median + 95% PI)'
+    else:
+        aux_n = ''
+
+    for id in ids:
+        save_name = os.path.join(save_path, 'ID_%d.png'%(id))
+
+        data_id = data[data.PTNO==id]
+        max_t = data_id.TIME.values[-1] // 2
+        max_t = 2 + (max_t * 2)
+
+        max_x = data_id.DV.max()
+        max_ipred = data_id.IPRED.max()
+        max_pred = data_id.PRED.max()
+        max_c = max_x if max_x >= max_ipred else max_ipred
+        max_c = max_c if max_c >= max_pred else max_pred
+        max_c = max_c // 1
+        max_c = 1 + (max_c * 1)
+
+        plt.figure()
+        sns.scatterplot(data=data_id[data_id.DV > 0], x='TIME', y='DV',
+                        label='Observed data', color='black').set(xlabel=None)
+        sns.lineplot(data=data_id, x='TIME', y='IPRED',
+                     linestyle='dotted', estimator=np.median,
+                     label='IPRED'+ aux_n, err_style='band',
+                     errorbar=('pi', 95)).set(xlabel=None)
+        sns.lineplot(data=data_id, x='TIME', y='PRED',
+                     estimator=np.median, label='PRED'+ aux_n).set(xlabel=None)
+        plt.xlabel('Time (hours)')
+        plt.ylabel('Drug concentration (ng/mL)')
+        plt.xlim((0, max_t))
+        plt.ylim((0, max_c))
+        plt.legend(fontsize=8)
+        plt.title('Patient Example %d'%(id))
+        plt.savefig(save_name, dpi=400)
+        plt.close()
+        print('individual image is saved'%(id))
