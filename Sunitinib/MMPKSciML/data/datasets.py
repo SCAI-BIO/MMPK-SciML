@@ -11,6 +11,11 @@ class Achims_SUNI_Dataset(Dataset):
         df_l = data[0]
         df_s = data[1]
 
+        self.dim_dv = 4
+        if not config.MET_Covariates:
+            self.dim_dv -= 1
+        if not config.PD_Covariates:
+            self.dim_dv -= 2
         self.df_l = df_l.iloc[:,  df_l.columns.isin(config.cov_long)]
         self.df_s = df_s.iloc[:,  df_s.columns.isin(config.cov_stat)]
         self.config = config
@@ -64,11 +69,11 @@ class Achims_SUNI_Dataset(Dataset):
 
                 data_idx = data_DV[data_DV.New_ID == idx].copy()
                 PID_ = torch.from_numpy(data_idx.ID.values)[0]
-                # if PID_ == 5:
-                #     import ipdb; ipdb.set_trace()
                 PID.append(PID_)
-                DV_idx = data_idx['DV'].apply(pd.to_numeric)
-                DV_idx = torch.from_numpy(DV_idx.values).view(-1, 4)
+                data_idx['DV'] = data_idx['DV'].apply(pd.to_numeric)
+
+                # DV_idx = data_idx['DV'].apply(pd.to_numeric)
+                DV_idx = torch.from_numpy(DV_idx.values).view(-1, self.dim_dv)
                 DV.append(DV_idx)
                 Time_idx = data_idx['TIME'].unique()
                 Time_idx = torch.from_numpy(Time_idx).view(-1, 1)

@@ -35,7 +35,7 @@ class Solver(object):
         self.Enc = Encoder(self.config, A_init_Time,
                            A_init_Static).to(self.device)
 
-        print('Models are built and have set to device')
+        print('Models are build and have set to device')
         if 'train' in self.config.mode:
             self.get_optimizer()
             self.loss = RunningAverageMeter()

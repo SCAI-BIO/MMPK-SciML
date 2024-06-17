@@ -7,10 +7,10 @@ import torch
 from .datasets import *
 
 def load_data(config):
-    path = os.path.join(config.train_dir, 'corrected_full_10fold_data_5fu_fi_cyc_split_check.csv')
+    path = os.path.join(config.train_dir, 'corrected_10fold_5fu_clean_check.csv')
     data_complete = pd.read_csv(path)
     data_complete = data_complete.rename(columns={'Difference_Start_End_Infusion': 'Real_TSLD'})
-    data_complete = data_complete.rename(columns={'CL_new ': 'CL'})
+    data_complete = data_complete.rename(columns={'CL_new': 'CL'})
     data_complete = data_complete.rename(columns={'AUC_new': 'AUC'})
 
     n_columns = data_complete.keys()
@@ -213,9 +213,7 @@ def load_dataset(config):
         dataloader = get_loader(config, dataset)
         dataloader_val = get_loader(config, dataset_val, bs_val)
 
-
     return config, dataloader, dataloader_val
-
 
 def get_loader(config, dataset, bs=None):
 

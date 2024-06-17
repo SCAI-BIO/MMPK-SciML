@@ -19,9 +19,9 @@ from solver import Solver
 warnings.filterwarnings('ignore')
 
 
-class Train(Solver):
+class Train_Achims(Solver):
     def __init__(self, config, dataloader, dataloader_val):
-        super(Train, self).__init__(config, dataloader, dataloader_val)
+        super(Train_Achims, self).__init__(config, dataloader, dataloader_val)
 
         if config.mode == 'val':
             self.validate()
@@ -112,11 +112,13 @@ class Train(Solver):
         Time_ODE = data[8][0].to(self.device)    # Time_ODE
         Time_DV = data[9][0, :, :, 0].to(self.device)    # Time_ODE
 
-        Doses = COVL[..., 4:5]
+        # In this way so that it always work even if the metabolite
+        # and the PD information are or aren't used
+        Doses = COVL[..., -3:-2]
         Tsld = COVL[..., -2:-1]
         COVS_ = self.Enc.Static_ImpLayer(COVS, MCOVS)
         COVL_ = self.Enc.Time_ImpLayer(COVL, MCOVL)
-        Met = COVL_[..., 1:2]
+        Met = COVL_[..., 1:2] if self.config.MET_Covariates else None
 
         b = Conc.size(0)
         Conc = Conc[..., 0]
@@ -587,7 +589,7 @@ class Train(Solver):
             data_name['DVPred'] = pred_x.detach().cpu().float()
             data_name['PRED'] = PRED.detach().cpu().float()
             data_name['GOF'] = GOF.detach().cpu().float()
-            data_name['MET'] = met.detach().cpu().float()
+            data_name['MET'] = met.detach().cpu().float() if self.config.MET_Covariates else met
             data_name['METPred'] = pred_met.detach().cpu().float()
             data_name['GOF_MET'] = GOF_MET.detach().cpu().float()
             data_name['AMT'] = Doses.cpu()
@@ -614,17 +616,6 @@ class Train(Solver):
 
         torch.save(data_save, 
             os.path.join(save_path, 'Results_Ep%d.pth'%(epoch)))
-
-        ## METRICS
-        # mape_avg = torch.mean(torch.cat(MAPE))
-        # smape_avg = torch.mean(torch.cat(SMAPE))
-        # rmse_avg = torch.mean(torch.cat(RMSE))
-
-        # mape_avg = round(mape_avg.item(), 3)
-        # smape_avg = round(smape_avg.item(), 3)
-        # rmse_avg = round(rmse_avg.item(), 3)
-
-        # save_metrics(epoch, mape_avg, smape_avg, rmse_avg, save_path)
 
         if 'Same_Patients' in self.config.val_data_split:
             path_ = os.path.join(self.config.save_path_samples)

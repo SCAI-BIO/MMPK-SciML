@@ -103,7 +103,7 @@ def pcVPC_DiffGroups(data, save_path, log_y=False, lb=0,
 
     index_ = pd.merge(tsld_df, rep_df, how='cross')
     metrics_= pd.DataFrame({"med":med, "pmin":pmin, "pmax":pmax}).reset_index(drop=True)
-    PredStats = pd.concat((index_, metrics_),1)
+    PredStats = pd.concat((index_, metrics_), axis=1)
 
     medmed = PredStats.groupby(['TIME_BIN'])['med'].median()
     pminmed = PredStats.groupby(['TIME_BIN'])['med'].quantile(alpha_2)
@@ -117,8 +117,8 @@ def pcVPC_DiffGroups(data, save_path, log_y=False, lb=0,
     pminpmax = PredStats.groupby(['TIME_BIN'])['pmax'].quantile(alpha_2)
     pmaxpmax = PredStats.groupby(['TIME_BIN'])['pmax'].quantile(p_alpha_2)
 
-    metrics_ = pd.concat((medmed, pminmed, pmaxmed, medpmin,  pminpmin, pmaxpmin, medpmax, pminpmax, pmaxpmax), 1).reset_index(drop=True)
-    PredStats = pd.concat((tsld_df, metrics_), 1)
+    metrics_ = pd.concat((medmed, pminmed, pmaxmed, medpmin,  pminpmin, pmaxpmin, medpmax, pminpmax, pmaxpmax), axis=1).reset_index(drop=True)
+    PredStats = pd.concat((tsld_df, metrics_), axis=1)
     PredStats.columns = ["TIME_BIN", "medmed", "pminmed", "pmaxmed", "medpmin",  "pminpmin", "pmaxpmin", "medpmax", "pminpmax", "pmaxpmax"]
 
     metrics_pcVPC = pd.merge(ObsStats, PredStats)
@@ -310,7 +310,11 @@ def main(config):
         Tsld = data_g['TSLD']
         GOF_pat = data_g['GOF']
         GOF_pat_met = data_g['GOF_MET']
-        Met = data_g['MET'][..., 0]
+        if config.MET_Covariates:
+            Met = data_g['MET'][..., 0]
+        else:
+            Met = torch.zeros_like(GOF_pat_met) - 1
+
         Mean_Pat = data_g['PRED']
         PID = data_g['PID']
         PRED_ = Mean_Pat.mean(0)
@@ -318,7 +322,7 @@ def main(config):
         group_names[str(group_idx)] = key_g
         group_idx = torch.ones_like(PRED_) * group_idx
 
-        patients_group = np.int(Obs.shape[0])
+        patients_group = int(Obs.shape[0])
         for nr in range(config.nruns_ppd):
             ipred_rep = IPred[:, nr, :]
             obs_rep = Obs[:, nr, :]

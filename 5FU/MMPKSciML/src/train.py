@@ -334,6 +334,7 @@ class Train(Solver):
             save_name = os.path.join(save_path, 'GOF_Conc_Ep%d.png'%(epoch))
             gof_plot(df_est.DV, df_est.IPRED, save_name)
 
+
             # Getting data for the full output
             PTNO, REP, TIME = [], [], []
             DV, IPRED, PRED = [], [], []

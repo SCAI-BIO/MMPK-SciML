@@ -6,6 +6,7 @@ import torch
 from parser import base_parser
 from utils import define_logs
 from train import Train
+from train_achims import Train_Achims
 import pyro
 import sys
 sys.path.append('../')
@@ -18,7 +19,10 @@ def main(config):
     print('Mode:', config.mode)
 
     config, dataloader, dataloader_val = load_dataset(config)
-    Train(config, dataloader, dataloader_val)
+    if config.drug_adm == 'Achims':
+        Train_Achims(config, dataloader, dataloader_val)
+    else:
+        Train(config, dataloader, dataloader_val)
 
 if __name__ == '__main__':
 
@@ -29,6 +33,9 @@ if __name__ == '__main__':
         config.GPU = [int(i) for i in range(len(config.GPU.split(',')))]
     else:
         config.GPU = False
+
+    if config.met_loss:
+        assert config.MET_Covariates, 'For this loss function you need to have the metabolite as input'
 
     np.random.seed(config.seed)
     torch.manual_seed(config.seed)
