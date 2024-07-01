@@ -13,14 +13,15 @@
 #dplyr: data wrangling
 #ggplot2: create plots
 #xpose4: needed to create pc-vpc and to read nonmem tables
+#lubridate: handling of dates and times
 
 rm(list=ls())
-
 
 library(dplyr) 
 library(tidyverse)
 library(ggplot2)
 library(xpose4)
+library(lubridate) 
 #install.packages("remotes")
 #remotes::install_github("AlessandroDeCarlo27/mvlognCorrEst")
 #install.packages("Matrix")
@@ -28,8 +29,7 @@ library(xpose4)
 #install.packages("qgraph")
 #install.packages("pracma")
 library(mvLognCorrEst)
-
-setwd("C:/Users/Olga/5FU_ML_neu/Augmentation_datasets/Split8")
+setwd("C:/Users/teply/Documents/5FU_NONMEM_final/Augmentation/Split8")
 
 # Split number m
 m <-8
@@ -37,20 +37,17 @@ m <-8
 
 # Section 1: Demographics -------------------------------------------------------
 
-data_5fu_demo <- read.csv("corrected_full_10fold_data_5fu_fi_cyc_split_check.csv")
+data_5fu_demo <- read.csv("corrected_10fold_5fu_clean_check.csv")
 
 # Train data -------------------------------------------------------------------
 
-# Define patient IDs for Test set
+# Define patient IDs for Train and Test set
 
 Test_ids <- unique(data_5fu_demo$ID[data_5fu_demo$Set_Run8 == 1])
 Train_ids <- unique(data_5fu_demo$ID[data_5fu_demo$Set_Run8 == 0])
 
 # Calculate individual mean values 
-individual_mean_values <- aggregate(cbind(Age,BSA_new, AMT, AUC_new, Difference_Start_End_Infusion, HGT, WT) ~ ID, data = data_5fu_demo, FUN = mean, na.rm = TRUE)
-
-# Calculate the standard deviation for each variable by ID, handling NA values
-individual_sd_values <- aggregate(. ~ ID, data = individual_mean_values, FUN = function(x) sd(x, na.rm = TRUE))
+individual_mean_values <- aggregate(cbind(Age,BSA_new, AMT, AUC_new, Difference_Start_End_Infusion, HGT, WT, Sex) ~ ID, data = data_5fu_demo, FUN = mean, na.rm = TRUE)
 
 # Filter data for Train and calculate mean values
 Train_mean_values <- individual_mean_values %>%
@@ -76,6 +73,27 @@ Train_values <- individual_mean_values %>%
   filter(ID %in% Train_ids)
 summary(Train_values)
 
+# Filter data for Men (Train data) and calculate mean height and weight (one value per patient)
+Men_hgt_wt <- individual_mean_values %>%
+  filter(ID %in% Train_ids) %>%
+  filter(Sex == 1) %>%
+  summarize(
+    mean_wt = mean(WT, na.rm = TRUE),
+    sd_wt = sd(WT, na.rm = TRUE),
+    mean_hgt = mean(HGT, na.rm = TRUE),
+    sd_hgt = sd(HGT, na.rm = TRUE))
+
+# Filter data for Women (Train data) and calculate mean height and weight
+Women_hgt_wt <- individual_mean_values %>%
+  filter(ID %in% Train_ids) %>%
+  filter(Sex == 0) %>%
+  summarize(
+    mean_wt = mean(WT, na.rm = TRUE),
+    sd_wt = sd(WT, na.rm = TRUE),
+    mean_hgt = mean(HGT, na.rm = TRUE),
+    sd_hgt = sd(HGT, na.rm = TRUE))
+
+
 # Filter data and count the number of women and men for Train
 Train_women_count <- data_5fu_demo %>%
   filter(ID %in% Train_ids, Sex == 0) %>%
@@ -99,17 +117,15 @@ write.csv(Train_mean_values, file = sprintf("Train_demo_5fu_%d.csv", m), row.nam
 write.csv(range_train, file = sprintf("range_train_demo_5fu_%d.csv", m), row.names = FALSE)
 
 # Section 2: BSA vs Dose -------------------------------------------------------
-data_5fu_demo <- read.csv("corrected_full_10fold_data_5fu_fi_cyc_split_check.csv")
-data_5fu_demo <- data_5fu_demo[complete.cases(data_5fu_demo), ]
+# use only one (mean) value per patient to avoid bias due to different sample size
+# and data points dependent on each other for correlation calculation
 
-Test_ids <- unique(data_5fu_demo$ID[data_5fu_demo$Set_Run8 == 1])
-Train_ids <- unique(data_5fu_demo$ID[data_5fu_demo$Set_Run8 == 0])
+data_5fu_demo <- individual_mean_values%>%
+  filter(ID %in% Train_ids)
 
 # Train ------------------------------------------------------------------------
-data_5fu_demo <- data_5fu_demo %>%
-  filter(ID %in% Train_ids) 
 
-#lm function
+#lm function (linear correlation assumed)
 model <- lm(AMT ~ BSA_new, data = data_5fu_demo)
 summary(model)
 
@@ -128,9 +144,8 @@ bsa_dose <- ggplot(data = data_5fu_demo, aes(x = BSA_new, y = AMT)) +
   geom_point(color = "blue", size = 1, alpha = 0.3) +
   geom_smooth(method = "lm", se = FALSE, color = "red", size = 0.5, formula = y ~ x) +
   ggtitle("BSA vs. Dose for fluorouracil model \n (train data) [8]") +
-  geom_text(aes(x = 1, y = 7700, label = equation), size = 3.5) +
-  geom_text(aes(x = 1, y = 8000,
-                label = paste("Adjusted R²:", round(adj_r_squared, 4))), size=3.5) +
+  annotate("text", x = 1, y = 7700, label = equation, size = 3.5)+
+  annotate("text", x = 1, y = 8000, label = paste("Adjusted R²:", round(adj_r_squared, 4)), size = 3.5)+
   theme(plot.title = element_text(size = 12, hjust = 0.5)) +
   scale_x_continuous(limits = c(0, 3)) +
   scale_y_continuous(limits = c(0, 8000)) +
@@ -149,29 +164,49 @@ ggsave(sprintf("bsa_dose_train_5fu_%d.jpg", m), width=10, height=10)
 
 # Section 3: Weight - Height Correlation ---------------------------------------
 
-# Train-------------------------------------------------------------------------
-data_5fu_demo <- read.csv("corrected_full_10fold_data_5fu_fi_cyc_split_check.csv")
-data_5fu_demo <- data_5fu_demo[complete.cases(data_5fu_demo), ]
+# Train men---------------------------------------------------------------------
+data_5fu_demo <- individual_mean_values%>%
+  filter(ID %in% Train_ids) # only one mean value per patient
 
-Test_ids <- unique(data_5fu_demo$ID[data_5fu_demo$Set_Run8 == 1])
-Train_ids <- unique(data_5fu_demo$ID[data_5fu_demo$Set_Run8 == 0])
+# Filter for male patients (SEX == 1)
+Men <- data_5fu_demo %>%
+  filter(Sex == 1)
+  
+WT<- Men$WT
+HGT<- Men$HGT
 
-data_5fu_demo <- data_5fu_demo %>%
-  filter(ID %in% Train_ids) 
+# Transform weight and height using the natural logarithm
+log_WT <- log(WT)
+log_HGT <- log(HGT)
 
-WT<- data_5fu_demo$WT
-HGT<- data_5fu_demo$HGT
-df<- data.frame(Weight = WT, Height = HGT)
-correlation <- cor(df, method = "spearman") #not necc. linear, monotonous
-cor<-correlation[1, 2] 
+# Create dataframes with log-transformed Weight and Height and original Weight and Height
+log_df <- data.frame(LogWeight = log_WT, LogHeight = log_HGT)
+df <- data.frame(Weight = WT, Height = HGT)
+
+
+# Calculate the Pearson correlation coefficient for log-transformed data 
+# linear correlation of log-normal values assumed, outliers not detected
+
+log_correlation <- cor(log_df, method = "pearson")
+log_cor <- log_correlation[1, 2]
+
+# Calculate the coefficients of variation for the original data
+cv_WT <- sd(WT) / mean(WT)
+cv_HGT <- sd(HGT) / mean(HGT)
+
+# Calculate the correlation coefficient on the original scale
+rho_original <- (exp(log_cor * sqrt(log(1 + cv_WT^2)) * sqrt(log(1 + cv_HGT^2))) - 1) /
+  sqrt((exp(log(1 + cv_WT^2)) - 1) * (exp(log(1 + cv_HGT^2)) - 1))
+
+# Print the correlation coefficient on the original scale
+print(rho_original)
 
 # Create a scatter plot
 scatter_plot <- ggplot(data = df, aes(x = WT, y = HGT)) +
   geom_point(color = "blue", size = 1, alpha = 0.3) +
   geom_smooth(method = "lm", se = FALSE, color = "red", size = 0.5, formula = y ~ x) +
-  geom_text(aes(x = 80, y = 220, label = paste("Spearman's ρ =", round(cor, 4))),
-            size = 3.5) +
-  ggtitle("Weight vs. Height with Spearman's Correlation") +
+  annotate("text", x = 80, y = 220, label = paste("Pearson's ρ =", round(rho_original, 4)), size = 3.5) +
+  ggtitle("Weight vs. Height with Pearson's Correlation Men") +
   xlab("Weight [kg]") + ylab("Height [cm]") +
   theme(
     plot.title = element_text(size = 12, hjust = 0.5),
@@ -181,27 +216,108 @@ scatter_plot <- ggplot(data = df, aes(x = WT, y = HGT)) +
 
 print(scatter_plot)
 
-ggsave(sprintf("hgt_wt_train_5fu_%d.jpg", m), width=10, height=10)
-write.csv(Train_mean_values, file = sprintf("Cor_WT_HGT_5fu_%d.csv", m), row.names = FALSE)
+ggsave(sprintf("hgt_wt_train_5fu_men_%d.jpg", m), width=10, height=10)
+
+# Create the correlation matrix
+correlation_matrix <- matrix(c(1, rho_original, rho_original, 1), nrow = 2, ncol = 2)
+colnames(correlation_matrix) <- c("Weight", "Height")
+rownames(correlation_matrix) <- c("Weight", "Height")
 
 # Validate simulation
-means <- as.array(c(Train_mean_values$mean_wt, Train_mean_values$mean_hgt))
-sds <- as.array(c(Train_mean_values$sd_wt, Train_mean_values$sd_hgt))
-validate_logN_corrMatrix(means, sds, correlation)
+means <- as.array(c(Men_hgt_wt$mean_wt, Men_hgt_wt$mean_hgt))
+sds <- as.array(c(Men_hgt_wt$sd_wt, Men_hgt_wt$sd_hgt))
+validate_logN_corrMatrix(means, sds, correlation_matrix)
 
 # sample
 set.seed(1234)
-samples <-mvlogn(1000, mu=means, sd= sds, corrMatrix= correlation)
+samples <-mvlogn(1000, mu=means, sd= sds, corrMatrix= correlation_matrix)
 
 # check samples with respect to original mean, sd, cv
 apply(samples$samples,2,mean)
 apply(samples$samples,2,sd)
 apply(samples$samples,2,sd)/apply(samples$samples,2,mean)
 
-weight_with<- samples[["samples"]][, "Weight"]
-height_with <-samples[["samples"]][, "Height"]
+weight_men<- samples[["samples"]][, "Weight"]
+height_men <-samples[["samples"]][, "Height"]
 
-# Section 4 Data Augmentation Template -----------------------------------------
+# Train women---------------------------------------------------------------------
+data_5fu_demo <- individual_mean_values%>%
+  filter(ID %in% Train_ids) # only one mean value per patient
+
+# Filter for female patients (SEX == 0)
+Women <- data_5fu_demo %>%
+  filter(Sex == 0)
+
+WT<- Women$WT
+HGT<- Women$HGT
+
+# Transform weight and height using the natural logarithm
+log_WT <- log(WT)
+log_HGT <- log(HGT)
+
+# Create dataframes with log-transformed Weight and Height and original Weight and Height
+log_df <- data.frame(LogWeight = log_WT, LogHeight = log_HGT)
+df <- data.frame(Weight = WT, Height = HGT)
+
+
+# Calculate the Pearson correlation coefficient for log-transformed data 
+# linear correlation of log-normal values assumed, outliers not detected
+
+log_correlation <- cor(log_df, method = "pearson")
+log_cor <- log_correlation[1, 2]
+
+# Calculate the coefficients of variation for the original data
+cv_WT <- sd(WT) / mean(WT)
+cv_HGT <- sd(HGT) / mean(HGT)
+
+# Calculate the correlation coefficient on the original scale
+rho_original <- (exp(log_cor * sqrt(log(1 + cv_WT^2)) * sqrt(log(1 + cv_HGT^2))) - 1) /
+  sqrt((exp(log(1 + cv_WT^2)) - 1) * (exp(log(1 + cv_HGT^2)) - 1))
+
+# Print the correlation coefficient on the original scale
+print(rho_original)
+
+# Create a scatter plot
+scatter_plot <- ggplot(data = df, aes(x = WT, y = HGT)) +
+  geom_point(color = "blue", size = 1, alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE, color = "red", size = 0.5, formula = y ~ x) +
+  annotate("text", x = 80, y = 220, label = paste("Pearson's ρ =", round(rho_original, 4)), size = 3.5) +
+  ggtitle("Weight vs. Height with Pearson's Correlation Women") +
+  xlab("Weight [kg]") + ylab("Height [cm]") +
+  theme(
+    plot.title = element_text(size = 12, hjust = 0.5),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
+  )
+
+print(scatter_plot)
+
+ggsave(sprintf("hgt_wt_train_5fu_women_%d.jpg", m), width=10, height=10)
+
+# Create the correlation matrix
+correlation_matrix <- matrix(c(1, rho_original, rho_original, 1), nrow = 2, ncol = 2)
+colnames(correlation_matrix) <- c("Weight", "Height")
+rownames(correlation_matrix) <- c("Weight", "Height")
+
+# Validate simulation
+means <- as.array(c(Women_hgt_wt$mean_wt, Women_hgt_wt$mean_hgt))
+sds <- as.array(c(Women_hgt_wt$sd_wt, Women_hgt_wt$sd_hgt))
+validate_logN_corrMatrix(means, sds, correlation_matrix)
+
+# sample
+set.seed(1234)
+samples <-mvlogn(1000, mu=means, sd= sds, corrMatrix= correlation_matrix)
+
+# check samples with respect to original mean, sd, cv
+apply(samples$samples,2,mean)
+apply(samples$samples,2,sd)
+apply(samples$samples,2,sd)/apply(samples$samples,2,mean)
+
+weight_women<- samples[["samples"]][, "Weight"]
+height_women <-samples[["samples"]][, "Height"]
+
+
+# Section 4: Data Augmentation Template -----------------------------------------
 
 # Train ------------------------------------------------------------------------
 # Set the seed for reproducibility
@@ -218,10 +334,10 @@ data <- tibble(ID = 1:num_subjects) %>%
     MDV = 1,
     DV=0,
     EVID = 1,
-    AGE = pmin(pmax(round(rnorm(num_subjects, mean = Train_mean_values$mean_age, sd = Train_mean_values$sd_age)), min(Train_values$Age)), max(Train_values$Age)),
-    WT= round(weight_with,2),
-    HGT= round(height_with,2),
     SEX = rbinom(num_subjects, size = 1, prob = percentage_men),
+    AGE = pmin(pmax(round(rnorm(num_subjects, mean = Train_mean_values$mean_age, sd = Train_mean_values$sd_age)), min(Train_values$Age)), max(Train_values$Age)),
+    WT=ifelse(SEX == 1, round((weight_men), 2), round((weight_women), 2)),
+    HGT=ifelse(SEX == 1, round((height_men), 2), round((height_women), 2)),
     BSA = round(0.007184 * (HGT^0.725) * (WT^0.425), 2), # Du Bois and Du Bois formula
     AMT = round(intercept + slope *BSA,2), # equation after linear regression
     RATE = round(AMT / REGIME, 2),
@@ -235,7 +351,7 @@ data_2 <- data %>%
     tibble(
       ID = 1:num_subjects,
       AMT = 0,
-      TIME = pmin(pmax(round(rnorm(num_subjects, mean = 18, sd = 0.5) * 2) / 2, 17.0), 21.5),
+      TIME= pmin(pmax(round(rnorm(num_subjects, mean = Train_mean_values$mean_time, sd = Train_mean_values$sd_time), 1),min(Train_values$Difference_Start_End_Infusion)),max(Train_values$Difference_Start_End_Infusion)),
       REGIME = 24,
       RATE = 0,
       CYC = 1,
@@ -263,7 +379,9 @@ colnames(data_2)[colnames(data_2) == "ID"] <- "#ID"
 # Save data_2 to a CSV file
 write.csv(data_2, file = sprintf("DataAugmentation_dataset_split%d.csv", m), row.names = FALSE)
 
-# Section 5 Data Augmentation Datasets -----------------------------------------
+# Section 5: Data Augmentation Datasets -----------------------------------------
+
+#Take mean IPRED from simulation (without residual variability)
 
 data<- read.nm.tables("Data_Augmentation_NM_split8.tab")
 data_2<-read.csv("DataAugmentation_dataset_split8.csv")
@@ -273,7 +391,7 @@ data_2<-read.csv("DataAugmentation_dataset_split8.csv")
 data <- data %>%
   filter(MDV == 0)
 
-# Calculate the mean of 'DV' for positions 1000, 2000, 3000, etc.
+# Calculate the mean of 'IPRED' for positions 1000, 2000, 3000, etc.
 num_positions <- 1000
 
 mean_values <- numeric(0)  # Initialize an empty vector to store the mean values
@@ -281,22 +399,22 @@ id_values <- numeric(0)    # Initialize an empty vector to store the ID values
 
 for (i in 1:num_positions) {
   position_indices <- seq(i, length.out = 1000, by = num_positions)
-  mean_value <- mean(data$DV[position_indices])
+  mean_value <- mean(data$IPRED[position_indices])
   mean_values <- c(mean_values, mean_value)
   id_value <- data$ID[position_indices[1]]  # Get the ID from the first row in each group
   id_values <- c(id_values, id_value)
 }
 
 # Create a data frame with the mean values and ID values
-result_df <- data.frame(Position = seq(1, num_positions), ID = id_values, Mean_DV = mean_values)
-result_df$Mean_DV <- round(result_df$Mean_DV, digits = 3)
+result_df <- data.frame(Position = seq(1, num_positions), ID = id_values, Mean_IPRED = mean_values)
+result_df$Mean_IPRED <- round(result_df$Mean_IPRED, digits = 3)
 
 # Remove the 'Position' column from result_df
 result_df <- result_df %>%
   select(-Position)
 
 # Save the result data frame to a CSV file
-write.csv(result_df, file = sprintf("mean_dv_values_augmentation_split_%d.csv", m), row.names = FALSE)
+write.csv(result_df, file = sprintf("mean_ipred_values_augmentation_split_%d.csv", m), row.names = FALSE)
 
 # Rename X.ID column from data_2
 data_2<-data_2 %>% 
@@ -308,12 +426,11 @@ data_2<-data_2 %>%
 data_3 <- data_2 %>%
   left_join(result_df, by = "ID") %>%
   mutate(
-    DV = ifelse(MDV == 0, Mean_DV, DV)
+    DV = ifelse(MDV == 0, Mean_IPRED, 0)
   ) %>%
-  select(-Mean_DV)  
+  select(-Mean_IPRED)  
 
 #Create dataframe for machine learning augmentation
-library(lubridate) 
 
 # In NONMEM, we have one dosing event and a seperate observation event, but we 
 # want it combined in one row for ML
@@ -332,6 +449,7 @@ combined_dataset <- data_3 %>%
   filter(AMT != 0) %>%  # Remove rows where AMT is equal to 0
   ungroup()            # Ungroup the data frame
 
+combined_dataset$TIME <- as.integer(combined_dataset$TIME)
 # next, we might need dates and times, this is done with lubridate
 combined_dataset <- combined_dataset %>%
   mutate(
@@ -422,5 +540,6 @@ combined_dataset <- combined_dataset %>%
 
 
 # Save the result data frame to a CSV file for the ML augmentation
-write.csv(combined_dataset, file = sprintf("corrected_10fold_data_5fu_fi_cyc_split_check_augmentation_split%d.csv", m), row.names = FALSE)
+write.csv(combined_dataset, file = sprintf("corrected_10fold_data_5fu_augmentation_split%d.csv", m), row.names = FALSE)
+
 

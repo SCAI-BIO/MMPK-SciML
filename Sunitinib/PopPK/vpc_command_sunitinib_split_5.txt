@@ -1,0 +1,1 @@
+C:\PsN-5.3.1\strawberry\perl\bin\vpc -samples=1000 -no_of_bins=5 -bin_by_count=1 -lnDV=1 -stratify_on=CMT,IPRED -dir=vpc_suni_focei_5 -predcorr suni_cov_0.05_0_focei_5_sim.mod

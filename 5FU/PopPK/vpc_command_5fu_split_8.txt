@@ -1,0 +1,1 @@
+C:\PsN-5.3.1\strawberry\perl\bin\vpc -samples=1000 -no_of_bins=4 -bin_by_count=1 -stratify_on=TIME,IPRED -dir=vpc_5fu_focei_8 -predcorr 5fu_pop_focei_sim_8.mod

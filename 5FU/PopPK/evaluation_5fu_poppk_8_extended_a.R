@@ -27,11 +27,11 @@ library(xpose4)
 library(MLmetrics)
 
 
-setwd("C:/Users/Olga/5FU_NONMEM_neu/Split_8")
+setwd("C:/Users/teply/Documents/5FU_NONMEM_final/Split8")
 
 # split8
 
-data_5fu <- read.csv("corrected_NM_Data_final.csv") # for DV vs IPRED and other GOF, with 23
+data_5fu <- read.csv("corrected_NM_Data_final_clean.csv", sep=",") # for DV vs IPRED and other GOF, with 23, clean
 data_train <- subset(data_5fu, SET8 == 0)
 data_train <- subset(data_train, DV != 0)
 
@@ -130,7 +130,7 @@ print(mean_values)
 result_df_b <- data.frame(Position = seq(1, num_positions), Mean_IPRED = mean_values)
 
 # Save the result data frame to a CSV file
-write.csv(result_df_b, file = sprintf("mean_ipred_values_sim_focei_%d.csv", m), row.names = FALSE)
+write.csv(result_df_b, file = sprintf("mean_ipred_values_sim_saem_%d.csv", m), row.names = FALSE)
 
 #DV vs IPRED for simulated results
 # predictions from simulation
@@ -148,7 +148,7 @@ dv_ipred <- ggplot(data=compare,aes(x=pred,y=actual))+ # Depict individual predi
   geom_point(color="#004e9f", size=1, alpha=0.5)+ ## Add points
   #geom_smooth(method = "lm", se = FALSE, color = "red", size=0.5) + ##R^2
   geom_abline(intercept = 0, slope = 1,size=0.5)+ # Add line of unity
-  ggtitle ("Observed Concentration vs. Individual Predicted Concentration 5FU \n Method: SAEM (test data) [8]") +
+  ggtitle ("Observed Concentration vs. Individual Predicted Concentration 5FU \n Method: SAEM-I (test data) [8]") +
   annotate("text", x = 0.8, y = 1.9,
            label = paste("Adjusted R²:", round(summary(model)$adj.r.squared,4)),
            hjust = 1, vjust = 1) +
@@ -166,7 +166,7 @@ ggsave(sprintf("dv_ipred_plot_test_saem_%d.jpg", m), width=6, height=6)
 # before, the data was preprocessed: Text in Spalten, "Table 1" header erased
 
 # FOCE-I  ----------------------------------------------------------------------
-data_cwres<- read.csv("5fu_focei_split_8.csv")
+data_cwres<- read.csv("5fu_focei_split_8.csv", sep=";")
 
 # convert some columns to numeric
 data_cwres <- data_cwres %>%
@@ -204,7 +204,7 @@ ggsave(sprintf("cwres_time_plot_train_focei_%d.jpg", m), width=6, height=6)
 
 
 # SAEM  ------------------------------------------------------------------------
-data_cwres<- read.csv("5fu_saem_split_8.csv")
+data_cwres<- read.csv("5fu_saem_split_8.csv", sep=";")
 
 # convert some columns to numeric
 data_cwres <- data_cwres %>%
@@ -219,7 +219,7 @@ cwres_pred<- ggplot(data_cwres,aes(x=PRED,y=CWRES))+
   geom_abline(intercept = 0, slope = 0,size=0.5)+ # Add line of unity
   scale_x_continuous(limits=c(0,2))+
   scale_y_continuous(limits=c(-4,6))+
-  ggtitle ("Conditional Weighted Residuals (CWRES) vs. Predicted Concentration 5FU \n Method: SAEM (training data) [8]") +
+  ggtitle ("Conditional Weighted Residuals (CWRES) vs. Predicted Concentration 5FU \n Method: SAEM-I (training data) [8]") +
   theme(plot.title = element_text(size=11, hjust=0.5)) + # Set theme
   ylab("Conditional Weighted Residuals (CWRES)")+ xlab("Predicted Concentration [mg/L]")
 cwres_pred
@@ -233,12 +233,13 @@ cwres_time<- ggplot(data_cwres,aes(x=TIME,y=CWRES))+
   scale_x_continuous(limits=c(15,26))+
   scale_y_continuous()+
   geom_abline(intercept = 0, slope = 0,size=0.5)+ # Add line of unity
-  ggtitle ("Conditional Weighted Residuals (CWRES) vs. Time 5FU \n Method: SAEM (training data) [8]") +
+  ggtitle ("Conditional Weighted Residuals (CWRES) vs. Time 5FU \n Method: SAEM-I (training data) [8]") +
   theme(plot.title = element_text(size=12, hjust=0.5)) + # Set theme
   ylab("Conditional Weighted Residuals (CWRES)")+ xlab("Time [h]")
 cwres_time
 
 ggsave(sprintf("cwres_time_plot_train_saem_%d.jpg", m), width=6, height=6)
+
 
 
 # Section 1.3 :  ETA distribution  ---------------------------------------------
@@ -247,6 +248,12 @@ ggsave(sprintf("cwres_time_plot_train_saem_%d.jpg", m), width=6, height=6)
 # for looking at the ETAs
 data_etas <-read.nm.tables("etas_split8_focei")
 data_etas <- subset(data_etas, DV != 0)
+
+# Select only the first row per ID
+data_etas <- data_etas %>%
+  group_by(ID) %>%
+  slice(1) %>%
+  ungroup()
 
 # Create the ETA distribution plot using ggplot2
 # ETA distribution of CL (V is fixed)
@@ -271,12 +278,18 @@ ggsave(sprintf("eta_distribution_plot_train_focei_%d.jpg",m), width= 6, height= 
 data_etas <-read.nm.tables("etas_split8_saem")
 data_etas <- subset(data_etas, DV != 0)
 
+# Select only the first row per ID
+data_etas <- data_etas %>%
+  group_by(ID) %>%
+  slice(1) %>%
+  ungroup()
+
 # Create the ETA distribution plot using ggplot2
 # ETA distribution of CL (V is fixed)
 eta_plot <-ggplot(data_etas, aes(x=ETA1)) +geom_histogram(aes(y = after_stat(density)), binwidth=0.05, col = "black") +  
   geom_density(alpha = 1, col= "#004a9f") +
   labs(
-    title = "ETA- Density (ETA CL) \n Method: SAEM 5FU (training data) [8]",
+    title = "ETA- Density (ETA CL) \n Method: SAEM-I 5FU (training data) [8]",
     x = "ETA value",
     y = "Density"
   ) +
@@ -291,8 +304,8 @@ ggsave(sprintf("eta_distribution_plot_train_saem_%d.jpg",m), width= 6, height= 6
 
 # Section 1.4 MAPE, MAE, MSE for NONMEM ----------------------------------------
 
-data_5fu <- read.csv("corrected_NM_Data_final.csv") # for DV vs IPRED and other GOF, with 23
-data_test <-subset(data_5fu, SET8 == 1)
+data_5fu <- read.csv("corrected_NM_Data_final_clean.csv", sep=",") # for DV vs IPRED and other GOF, with 23
+data_test <-subset(data_5fu, SET8 == 1) # test set
 data_test <- subset(data_test, DV != 0)
 actual<- data_test$DV
 

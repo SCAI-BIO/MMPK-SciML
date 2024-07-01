@@ -1,0 +1,44 @@
+;; 1. Based on: Eduard Schmulenson SMI model
+;; 2. Description: 5-FU PK model (1 compartiment)   
+;; x1. Author: OT
+;; 3. Label: 5-FU PK model
+$PROBLEM    5-FU PK model (1 compartiment) focei
+; FOCE-I method sim 
+$INPUT      ID SEX AMT TIME REGIME RATE CYC MDV EVID DVNGML DV
+            AUCGIVEN BSA FLAG SET1 SET2 SET3 SET4 SET5 SET6 SET7 SET8
+            SET9 SET10
+$DATA      corrected_NM_Data_sim_8.csv IGNORE=#
+$SUBROUTINE ADVAN1 TRANS2
+$PK
+CLBSA= (1+ THETA(4) * (BSA-1.94)) ;BSA as covariate on clearance, BSA centered on training population median (split 8)
+CLCOV= CLBSA
+
+;Structural model
+TVCL=CLCOV*THETA(1)
+CL=TVCL*EXP(ETA(1))
+TVV=THETA(2)
+V=TVV*EXP(ETA(2))
+
+S1=V
+AUC=AMT/CL
+
+$ERROR
+IPRED=F
+DEL=0
+W=SQRT((THETA(3)*IPRED)**2) ; proportional error model
+Y=IPRED+W*EPS(1) 
+IF(W.EQ.0) DEL=0.0001
+IRES= DV*IPRED
+IWRES= IRES/(W+DEL)
+
+$THETA  (0,219.584) ; CL
+ 46.1 FIX ; V
+ (0,0.217849) ; prop. error,residual variability 
+ 0.852026 ; CLBSA
+$OMEGA  0.0602172  ;     IIV CL  
+ 0.511  FIX  ;      IIV V  
+$SIGMA  1  FIX
+
+$SIMULATION (12345) (54321) ONLYSIM SUBPROBLEMS=1000
+$TABLE ID SEX AMT TIME REGIME RATE CYC MDV EVID AUC AUCGIVEN BSA IPRED DV CWRES NOAPPEND ONEHEADER NOPRINT
+FILE= Sim_test_focei_split_8.tab
