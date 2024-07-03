@@ -1,7 +1,7 @@
 $PROBLEM CESAR CIV-boot_029 EuroTARGET PKPD Sunitinib   model by YU et al
 ;; 1. Based on: suni_cov_0.05_0_focei_1
 ;; 2. Description: CESAR EuroTARGET SAEM
-;; x1. Author: Olga
+;; x1. Author: Olga Teplytska
 
 ; [D]
 
@@ -124,6 +124,7 @@ $OMEGA BLOCK(4); block structure kept, added standard 20% for unknown parameters
  0.05 0.579    ;2 IIV V3 
  0 0.05 0.2  ;3 IIV CLP 
  0 0 0.05 0.2   ;4 IIV FM
+
 
 $SIGMA
  1 FIX  ; Proportional error sunitinib 

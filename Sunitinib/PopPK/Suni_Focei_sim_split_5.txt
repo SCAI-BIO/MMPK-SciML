@@ -1,6 +1,6 @@
 ;; 1. Based on: sunitinib_diekstra_values_original_cov
 ;; 2. Description: CESAR EuroTARGET FOCEI
-;; x1. Author: Olga
+;; x1. Author: Olga Teplytska
 $PROBLEM    CESAR CIV-boot_029 EuroTARGET PKPD Sunitinib model by YU
 ;           et al
 ; [D]
@@ -95,24 +95,26 @@ IRES = DV-IPRED
   IF(W.EQ.0) DEL = 0.0001
   IWRES           = IRES/(W+DEL)
 
-$THETA  (0,0.157893) ; 1 = K12  Absorption rate constant
- (0,1842.61) ; 2 = V2  Central volume of distribution of sunitinib
+$THETA  (0,0.15726) ; 1 = K12  Absorption rate constant
+ (0,1779.89) ; 2 = V2  Central volume of distribution of sunitinib
  80 FIX ; 3 = QH  Hepatic blood flow X
- (0,33.3882) ; 4 = CLP  Clearance of sunitinib
- (0,16.4079) ; 5 = CLM  Clearance of SU12662
- (0,733.321) ; 6 = V3  Central volume of distribution of SU12662
- (0,3.00786) ; 7 = Q34  Inter-compartmental clearance of SU12662
- (0,624.25) ; 8 = V4  Peripheral volumes of distribution of SU12662
+ (0,32.9314) ; 4 = CLP  Clearance of sunitinib
+ (0,16.458) ; 5 = CLM  Clearance of SU12662
+ (0,739.701) ; 6 = V3  Central volume of distribution of SU12662
+ (0,3.03858) ; 7 = Q34  Inter-compartmental clearance of SU12662
+ (0,624.277) ; 8 = V4  Peripheral volumes of distribution of SU12662
  0.21 FIX ; 9 = FM  Fraction of sunitinib converted to SU12662 X
- (0,0.393649) ; 10 = Q25  Inter-compartmental clearance of Sunitinib; not in Yu
+ (0,0.395864) ; 10 = Q25  Inter-compartmental clearance of Sunitinib; not in Yu
  588 FIX ; 11 = V5  Peripheral volumes of distribution of Sunitinib X
- 0.379867 ; 12 =  Prop. Error Suni
- 0.253768 ; 13 = Prop. Error Metab
+ 0.347865 ; 12 =  Prop. Error Suni
+ 0.254666 ; 13 = Prop. Error Metab
+ 
 $OMEGA  BLOCK(4)
- 0.0802123  ;   1 IIV V2
- 0.0652642 0.143268  ;   2 IIV V3
- 0 -0.0719207 0.0956678  ;  3 IIV CLP
- 0 0 -0.0528418 0.136168  ;   4 IIV FM
+ 0.0646833  ;   1 IIV V2
+ 0.0596407 0.142929  ;   2 IIV V3
+ 0 -0.0692007 0.0965848  ;  3 IIV CLP
+ 0 0 -0.0520589 0.135796  ;   4 IIV FM
+ 
 $SIGMA  1  FIX  ; Proportional error sunitinib
  1  FIX  ; Proportional error SU12662
 

@@ -1,7 +1,7 @@
 $PROBLEM CESAR CIV-boot_029 EuroTARGET PKPD Sunitinib   model by YU et al
 ;; 1. Based on: sunitinib_diekstra_values_original_cov
 ;; 2. Description: CESAR EuroTARGET FOCEI
-;; x1. Author: Olga
+;; x1. Author: Olga Teplytska
 
 ; [D]
 

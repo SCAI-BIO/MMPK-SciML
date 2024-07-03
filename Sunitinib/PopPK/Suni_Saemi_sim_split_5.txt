@@ -1,6 +1,6 @@
 ;; 1. Based on: suni_cov_0.05_0_focei_1
 ;; 2. Description: CESAR EuroTARGET SAEM
-;; x1. Author: Olga
+;; x1. Author: Olga Teplytska
 $PROBLEM    CESAR CIV-boot_029 EuroTARGET PKPD Sunitinib model by YU
 ;           et al
 ; [D]
@@ -105,24 +105,26 @@ IRES = DV-IPRED
   IF(W.EQ.0) DEL = 0.0001
   IWRES           = IRES/(W+DEL)
 
-$THETA  (0,0.147957) ; 1 = K12  Absorption rate constant
- (0,1843.75) ; 2 = V2  Central volume of distribution of sunitinib
+$THETA  (0,0.141873) ; 1 = K12  Absorption rate constant
+ (0,1764.99) ; 2 = V2  Central volume of distribution of sunitinib
  80 FIX ; 3 = QH  Hepatic blood flow X
- (0,33.2745) ; 4 = CLP  Clearance of sunitinib
- (0,16.5393) ; 5 = CLM  Clearance of SU12662
- (0,656.95) ; 6 = V3  Central volume of distribution of SU12662
- (0,2.9052) ; 7 = Q34  Inter-compartmental clearance of SU12662; initial set to 5
- (0,668.191) ; 8 = V4  Peripheral volumes of distribution of SU12662; initial set to 600
+ (0,33.4853) ; 4 = CLP  Clearance of sunitinib
+ (0,17.0489) ; 5 = CLM  Clearance of SU12662
+ (0,682.228) ; 6 = V3  Central volume of distribution of SU12662
+ (0,3.01876) ; 7 = Q34  Inter-compartmental clearance of SU12662; initial set to 5
+ (0,704.805) ; 8 = V4  Peripheral volumes of distribution of SU12662; initial set to 600
  0.21 FIX ; 9 = FM  Fraction of sunitinib converted to SU12662 X
- (0,0.391748) ; 10 = Q25  Inter-compartmental clearance of Sunitinib; not in Yu
+ (0,0.404808) ; 10 = Q25  Inter-compartmental clearance of Sunitinib; not in Yu
  588 FIX ; 11 = V5  Peripheral volumes of distribution of Sunitinib X
- 0.391463 ; 12 =  Prop. Error Suni
- 0.26237 ; 13 = Prop. Error Metab
+ 0.34689 ; 12 =  Prop. Error Suni
+ 0.264495 ; 13 = Prop. Error Metab
+ 
 $OMEGA  BLOCK(4)
- 0.0646996  ;   1 IIV V2
- -0.0516388 0.155935  ;   2 IIV V3
- 0 -0.0905699 0.113459  ;  3 IIV CLP
- 0 0 -0.0666583 0.137254  ;   4 IIV FM
+ 0.053364  ;   1 IIV V2
+ -0.0469523 0.151033  ;   2 IIV V3
+ 0 -0.0894524 0.115565  ;  3 IIV CLP
+ 0 0 -0.0666453 0.136916  ;   4 IIV FM
+ 
 $SIGMA  1  FIX  ; Proportional error sunitinib
  1  FIX  ; Proportional error SU12662
 
