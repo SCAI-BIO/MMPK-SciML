@@ -14,7 +14,7 @@ from optuna.samplers import TPESampler
 import keras
 from keras.regularizers import l1
 from scikeras.wrappers import KerasRegressor
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
+from sklearn.preprocessing import MinMaxScaler
 from tqdm import tqdm
 import Data_load_clean_suni
 import pandas as pd
@@ -68,27 +68,23 @@ def mape_array(y_true, y_pred):
 
 
 def preprocessing_pipeline(x_train):
-    # Define the pipeline: Imputation with MissForest, Scaling with MinMaxScaler, One-hot encoding with
-    # OneHotEncoder
-
-    imp, scaler, onehot = MissForest(), MinMaxScaler(), OneHotEncoder()
-
-    # Select columns
-    num_cols = x_train.select_dtypes(include=[np.number]).columns.tolist()
-    cat_cols = x_train.select_dtypes(exclude=[np.number]).columns.tolist()
-
+    imp, scaler = MissForest(), MinMaxScaler()
+    num_cols = x_train.select_dtypes(include=[np.number]).drop(columns=["TAD"]).columns.tolist()
     num_pipeline = make_pipeline(imp, scaler)
-    cat_pipeline = make_pipeline(onehot)
+    
+    tad_col = ["TAD"]
+    tad_pipeline = make_pipeline(scaler)
 
-    # Create a ColumnTransformer
     preprocessor = ColumnTransformer(
-        [
+        transformers=[
             ('num', num_pipeline, num_cols),
-            ('cat', cat_pipeline, cat_cols)
-        ], remainder='passthrough'  # pass through any unspecified columns
+            ('tad', tad_pipeline, tad_col)
+        ], 
+        remainder='passthrough'
     )
 
     return preprocessor
+
 
 
 def calculate_metrics(y_true, y_pred):
@@ -203,7 +199,7 @@ def optimize_MLP_two_hidden_layers_hyperparameters(split, data_augmentation,
             # Scale and Impute data, Create Pipeline
             preprocessor = preprocessing_pipeline(X_train)
             pipeline = Pipeline([('preprocessor', preprocessor), ('clf', clf)])
-
+            
             # Train the model
             pipeline.fit(X_train_fold, y_train_fold)
             # Make predictions on the validation set

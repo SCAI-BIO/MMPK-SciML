@@ -1,7 +1,7 @@
 ########################################################################################################################
 # XGBoost, LightGBM for 5FU Project                                                                                    #
 # Based on OtherMethods_fin                                                                                            #
-# last edited: 20.02.24  (Changed Python version for MissForest, which currently requires 3.10)                        #
+# last edited: 20.02.24                                                                                                #
 # this has been written in Python 3.10 and may not work the same in future versions!                                   #
 #                                                                                                                      #
 # data used:                                                                                                           #

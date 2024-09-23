@@ -6,39 +6,18 @@
 #                                                                                                                      #
 # data used:                                                                                                           #
 # Datensatz_AF_FK_Sunitinib_final_raw.csv: dataset for every split with set column to be split on, corrected           #
+# Datensatz_AF_FK_Sunitinib_final_aug_split_10.csv: augmentation datasets split_1 - split_10                           #
 ########################################################################################################################
 
 import pandas as pd
-
-# Seed value
-seed_value = 42
-
-# 1. Set the `PYTHONHASHSEED` environment variable at a fixed value
 import os
-
-os.environ['PYTHONHASHSEED'] = str(seed_value)
-
-# 2. Set the `python` built-in pseudo-random generator at a fixed value
-import random
-
-random.seed(seed_value)
-
-# 3. Set the `numpy` pseudo-random generator at a fixed value
-import numpy as np
-
-np.random.seed(seed_value)
-
-# 4. Set the `tensorflow` pseudo-random generator at a fixed value
-import tensorflow as tf
-
-tf.random.set_seed(seed_value)
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
-data = pd.read_csv("Datensatz_AF_FK_Sunitinib_final_raw.csv", delimiter=',', encoding="utf-8") # only clinical data
-# data = pd.read_csv("Datensatz_AF_FK_Sunitinib_final_aug_split_1.csv", delimiter=',', encoding="utf-8") # augmented data split 1
+data = pd.read_csv("Datensatz_AF_FK_Sunitinib_final_raw.csv", delimiter=';', encoding="utf-8") # only clinical data
+# data = pd.read_csv("Datensatz_AF_FK_Sunitinib_final_aug_split_10.csv", delimiter=';', encoding="utf-8") # augmented data split 10
 
 # drop ID ET0800 (no measurements), Baseline measurements and BQL measurements 
 # Drop rows where 'DV' column is empty, NaN, or None
@@ -67,5 +46,5 @@ data = data.drop(columns=columns_to_permanently_drop)
 
 # Save preprocessed data
 filename = 'suni_data_split_0_aug_preproc.csv' # only clinical data
-# filename = 'suni_data_split_1_100_aug_preproc.csv'# augmented data split 1
+# filename = 'suni_data_split_10_100_aug_preproc.csv'# augmented data split 10
 data.to_csv(filename, index=False)

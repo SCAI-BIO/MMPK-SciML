@@ -22,7 +22,7 @@ import sys
 
 sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
 from missingpy import MissForest
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.pipeline import Pipeline, make_pipeline
 import optuna
 from optuna.samplers import TPESampler
@@ -71,27 +71,23 @@ def calculate_metrics(y_true, y_pred):
 
 
 def preprocessing_pipeline(x_train):
-    # Define the pipeline: Imputation with MissForest, Scaling with MinMaxScaler, One-hot encoding with
-    # OneHotEncoder
-
-    imp, scaler, onehot = MissForest(), MinMaxScaler(), OneHotEncoder()
-
-    # Select columns
-    num_cols = x_train.select_dtypes(include=[np.number]).columns.tolist()
-    cat_cols = x_train.select_dtypes(exclude=[np.number]).columns.tolist()
-
+    imp, scaler = MissForest(), MinMaxScaler()
+    num_cols = x_train.select_dtypes(include=[np.number]).drop(columns=["TAD"]).columns.tolist()
     num_pipeline = make_pipeline(imp, scaler)
-    cat_pipeline = make_pipeline(onehot)
+    
+    tad_col = ["TAD"]
+    tad_pipeline = make_pipeline(scaler)
 
-    # Create a ColumnTransformer
     preprocessor = ColumnTransformer(
-        [
+        transformers=[
             ('num', num_pipeline, num_cols),
-            ('cat', cat_pipeline, cat_cols)
-        ], remainder='passthrough'  # pass through any unspecified columns
+            ('tad', tad_pipeline, tad_col)
+        ], 
+        remainder='passthrough'
     )
 
     return preprocessor
+
 
 
 def save_results_to_csv(results_dict, filename):

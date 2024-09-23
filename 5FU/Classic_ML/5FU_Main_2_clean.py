@@ -1,12 +1,11 @@
 ########################################################################################################################
 # Main 2 for 5FU                                                                                                       #
 # Created by: Alina Pollehn and Dr. Elena Trunz, edited by Olga Teplytska                                              #
-# last edited: 20.02.24  (Changed Python version for MissForest, which currently requires 3.10)                        #
-# this has been written in Python 3.10 and may not work the same in future versions!                                 #
+# last edited: 20.02.24                                                                                                #
+# this has been written in Python 3.10 and may not work the same in future versions!                                   #
 #                                                                                                                      #
 # data used:                                                                                                           #
-# 'fu_data_split_0_aug_preproc.csv': preprocessed data without augmentation  preprocessed data with set              #                                                                                                #
-# f'fu_data_split_{split}_aug_{data_augmentation}_preproc_corr.csv' with augmented data                              #
+# 'fu_data_split_0_aug_preproc.csv': preprocessed data without augmentation  preprocessed data with set                #                                                                                                #
 ########################################################################################################################
 
 import fu_MLP_Regressor_clean

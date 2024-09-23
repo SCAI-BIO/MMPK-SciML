@@ -1,11 +1,11 @@
 ########################################################################################################################
 # MLPRegressor for 5FU project                                                                                         #
 # Based on StackOverflow code by Flavia Giammarino                                                                     #
-# last edited: 20.02.24  (Changed Python version for MissForest, which currently requires 3.10)                        #
+# last edited: 20.02.24                                                                                                #
 # this has been written in Python 3.10 and may not work the same in future versions!                                   #
 #                                                                                                                      #
 # data used:                                                                                                           #
-# '5fu_data_split_0_aug_preproc.csv': preprocessed data without augmentation  preprocessed data with set               #
+# '5fu_data_split_0_aug_preproc.csv': preprocessed data without augmentation                                           #
 # general note: here, dynamic batch sizes are used                                                                     #
 ########################################################################################################################
 

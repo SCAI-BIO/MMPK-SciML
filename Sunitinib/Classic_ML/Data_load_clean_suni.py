@@ -17,24 +17,6 @@ import csv
 from xgboost import XGBRegressor
 from sklearn.feature_selection import SelectFromModel
 
-# Seed value
-seed_value = 42
-
-# 1. Set the `PYTHONHASHSEED` environment variable at a fixed value
-import os
-
-os.environ['PYTHONHASHSEED'] = str(seed_value)
-
-# 2. Set the `python` built-in pseudo-random generator at a fixed value
-import random
-
-random.seed(seed_value)
-
-# 3. Set the `numpy` pseudo-random generator at a fixed value
-import numpy as np
-
-np.random.seed(seed_value)
-
 # Define real and simulated patients, split dataset based on splitting variable
 
 def train_test_split(split="1", data_augmentation="0", feature_selection=False,
@@ -43,8 +25,8 @@ def train_test_split(split="1", data_augmentation="0", feature_selection=False,
     selected_feature_names = []  # Initialize empty list
     selected_original_feature_names = []  # Initialize empty list
 
-    # csv_filename = f'suni_data_split_{split}_{data_augmentation}_aug_preproc.csv' # data with simulated patients
-    csv_filename = 'suni_data_split_0_aug_preproc.csv' # data without simulated patients
+    csv_filename = f'suni_data_split_{split}_{data_augmentation}_aug_preproc.csv' # data with simulated patients
+    # csv_filename = 'suni_data_split_0_aug_preproc.csv' # data without simulated patients
 
     data = pd.read_csv(csv_filename)
 
@@ -86,5 +68,5 @@ def train_test_split(split="1", data_augmentation="0", feature_selection=False,
 
 # Example usage
 X_train, y_train, X_test, y_test = (
-    train_test_split(split="1", data_augmentation="0",
+    train_test_split(split="1", data_augmentation="100",
                      algorithm_name=None))

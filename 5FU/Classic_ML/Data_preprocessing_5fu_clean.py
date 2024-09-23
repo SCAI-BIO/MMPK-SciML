@@ -6,7 +6,6 @@
 #                                                                                                                      #
 # data used:                                                                                                           #
 # corrected_10fold_5fu_clean_check.csv: clean dataset for every split with set column to be split on                   #
-#                                                                                                                      #
 ########################################################################################################################
 
 import pandas as pd
@@ -39,7 +38,6 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 data = pd.read_csv("corrected_10fold_5fu_clean_check.csv", delimiter=',', encoding="utf-8") # clinical data
-# data = pd.read_csv("corrected_10fold_5fu_clean_check_aug_1.csv", delimiter=',', encoding="utf-8") # augmented data split 1
 
                      
 # drop times, blood counts and symptoms (proved to be not useful in previous analyses)
@@ -56,5 +54,4 @@ data = data.drop(columns=columns_to_drop)
 
 # Save preprocessed data
 filename = '5fu_data_split_0_aug_preproc.csv' # clinical data
-# filename = '5fu_data_split_10_aug_100_preproc_corr.csv' # augmented data split 1
 data.to_csv(filename, index=False)

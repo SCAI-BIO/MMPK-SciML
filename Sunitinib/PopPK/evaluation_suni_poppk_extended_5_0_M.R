@@ -26,7 +26,7 @@ library(xpose4)
 library(MLmetrics)
 
 
-setwd("C:/Users/teply/Documents/Suni_NONMEM_final/Split5")
+setwd("C:/Users/teply/Documents/Suni_NONMEM_final - Kopie/Split5")
 
 data_suni <- read.csv("Suni_PK_final_raw.csv") # for DV vs IPRED and other GOF
 data_suni <- subset(data_suni, SET_5 == 1) # test data
@@ -52,7 +52,7 @@ data<-read.nm.tables("Suni_focei_sim_split_5.tab")
 
 # Filter rows where DV is not 0 and CMT is 2 (parent)
 data <- data %>%
-  filter(LNDV != 0, CMT == 2)
+  filter(DV != 0, CMT == 2)
 
 # Calculate the mean of 'EXPIPRED' 
 num_positions <- nrow(data_suni)
@@ -108,7 +108,7 @@ data<-read.nm.tables("Suni_saem_sim_split_5.tab")
 
 # Filter rows where DV is not 0
 data <- data %>%
-  filter(LNDV != 0, CMT == 2)
+  filter(DV != 0, CMT == 2)
 
 # Calculate the mean of 'EXPIPRED' 
 num_positions <- nrow(data_suni)
@@ -173,7 +173,7 @@ data<-read.nm.tables("Suni_focei_sim_split_5.tab")
 
 # Filter rows where DV is not 0 and CMT is 3 (metabolite)
 data <- data %>%
-  filter(LNDV != 0, CMT == 3)
+  filter(DV != 0, CMT == 3)
 
 # Calculate the mean of 'EXPIPRED' 
 num_positions <- nrow(data_suni)
@@ -229,7 +229,7 @@ data<-read.nm.tables("Suni_saem_sim_split_5.tab")
 
 # Filter rows where DV is not 0
 data <- data %>%
-  filter(LNDV != 0, CMT == 3)
+  filter(DV != 0, CMT == 3)
 
 # Calculate the mean of 'EXPIPRED' 
 num_positions <- nrow(data_suni)

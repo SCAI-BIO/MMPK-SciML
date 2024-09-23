@@ -47,25 +47,24 @@ ASV    = WT/70
 
 
 K12    = THETA(1)     
-TVV2   = THETA(2)*ASV 
-V2     = TVV2 * EXP(ETA(1))
+TVV2   = THETA(2)
+MU_1 = LOG(TVV2)
+V2 = ASV*EXP(MU_1+ETA(1))
 QH     = THETA(3)*ASCL
-TVCLP  = THETA(4)*ASCL
-CLP    = TVCLP * EXP(ETA(3))
+TVCLP  = THETA(4)
+MU_3 = LOG(TVCLP)
+CLP    = ASCL*EXP(MU_3+ETA(3))
 CLM    = THETA(5)*ASCL
-TVV3   = THETA(6)*ASV 
-V3     = TVV3 * EXP(ETA(2))
+TVV3   = THETA(6)
+MU_2 = LOG(TVV3) 
+V3     = ASV*EXP(MU_2 + ETA(2))
 Q34    = THETA(7)*ASCL 
 V4     = THETA(8)*ASV 
 TVFM   = THETA(9) 
-FM     = TVFM * EXP(ETA(4))
-Q25    = THETA(10)*ASCL    
-V5     = THETA(11)*ASV    
-
-MU_1 = LOG(TVV2)
-MU_2 = LOG(TVV3)
-MU_3 = LOG(TVCLP)
 MU_4 = LOG(TVFM)
+FM     = EXP(MU_4+ETA(4))
+Q25    = THETA(10)*ASCL    
+V5     = THETA(11)*ASV 
 
 K34 = Q34/V3
 K43 = Q34/V4

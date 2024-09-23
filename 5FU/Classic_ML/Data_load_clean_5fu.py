@@ -4,7 +4,7 @@
 # last edited: 30.06.24  (Clean Up)                                                                                    #
 # this has been written in Python 3.10 and may not work the same in future versions!                                   #
 #                                                                                                                      #
-# '5fu_data_split_0_aug_preproc.csv': preprocessed data without augmentation  preprocessed data with set               #
+# '5fu_data_split_0_aug_preproc.csv': preprocessed data without augmentation                                           #
 # based on corrected_10fold_5fu_clean_check.csv: clean dataset for every split with set column to split on             #
 ########################################################################################################################
 
