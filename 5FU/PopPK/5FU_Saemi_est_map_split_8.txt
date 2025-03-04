@@ -1,0 +1,55 @@
+$PROBLEM 5-FU PK model (1 compartiment) saem
+;; 1. Based on: Eduard Schmulenson SMI model
+;; 2. Description: 5-FU PK model (1 compartiment)   
+;; x1. Author: OT
+;; 3. Label: 5-FU PK model
+
+; SAEM-I method MAP
+
+$INPUT      ID SEX AMT TIME REGIME RATE CYC MDV EVID DVNGML DV
+            AUCGIVEN BSA FLAG SET1 SET2 SET3 SET4 SET5 SET6 SET7 SET8
+            SET9 SET10
+            
+$DATA corrected_NM_Data_final_clean.csv IGNORE=#  ; clean data without BQL and outliers
+
+IGNORE(SET8.EQ.0) ; Analyse test data
+$SUBROUTINE ADVAN1 TRANS2
+$PK
+CLBSA= (1+ THETA(4) * (BSA-1.94)) ;BSA as covariate on clearance, BSA centered on training population median (split 8)
+CLCOV= CLBSA
+
+;Structural model
+TVCL=THETA(1)
+MU_1=LOG(TVCL)
+CL=CLCOV*EXP(MU_1+ETA(1)) ;account for time-varying BSA covariate by modeling it on individual level
+
+TVV=THETA(2)
+MU_2=LOG(TVV)
+V=EXP(MU_2+ETA(2))
+
+S1=V
+AUC=AMT/CL
+
+
+$ERROR
+IPRED=F
+DEL=0
+W=SQRT((THETA(3)*IPRED)**2) ;prop. error model
+Y=IPRED+W*EPS(1) 
+IF(W.EQ.0) DEL=0.0001
+IRES= DV*IPRED
+IWRES= IRES/(W+DEL)
+
+$THETA  (0,215.603) ; CL; Wilhelm et al.
+ 46.1 FIX ; V; Wilhelm et al.
+ (0,0.216277) ; prop. error,residual variability from Wilhelm et al.
+ 0.856782 ; CLBSA; Wilhelm  et al.
+ 
+$OMEGA  0.0615274  ;     IIV CL  ; Wilhelm et al.
+ 0.511  FIX  ;      IIV V  ; Wilhelm et al.
+ 
+$SIGMA  1  FIX
+
+$EST METHOD=SAEM INTERACTION NITER=0 NBURN=0 MAPITER=1 NOABORT PRINT=5 SIG=3 ; MAP estimation using SAEM-I for test data
+$TABLE ID SEX AMT TIME REGIME RATE CYC MDV EVID AUC AUCGIVEN BSA IPRED DV CWRES NOAPPEND ONEHEADER NOPRINT
+FILE= Sim_map_test_saem_split_8.tab

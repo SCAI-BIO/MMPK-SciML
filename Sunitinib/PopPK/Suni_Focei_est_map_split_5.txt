@@ -1,0 +1,129 @@
+$PROBLEM CESAR CIV-boot_029 EuroTARGET PKPD Sunitinib   model by YU et al
+;; 1. Based on: sunitinib_diekstra_values_original_cov
+;; 2. Description: CESAR EuroTARGET FOCEI
+;; x1. Author: Olga Teplytska
+
+; [D]
+
+; FOCE-I MAP
+
+;-----------------------------------------
+
+;  UNITS                                  |
+
+;  TIME - HOURS                           |
+
+;  DOSE - UG                              |
+
+;  CP  - NG/ML  -> UG/L                   |
+
+;  LLOQ - 0.06 NG/ML                      |
+
+;  CL - L/HOUR                            |
+
+;  VOLUMES - L                            |
+
+; cov: 0.05, small set to 0 initials from Yu study|
+
+;------------------------------------------
+
+$INPUT      C SET_1 SET_2 SET_3 SET_4 SET_5 SET_6 SET_7 SET_8 SET_9
+            SET_10 ID ETID=DROP DAT=DROP CTIME=DROP TRTW TIME TAD AMT
+            DOS DV=DROP LNDV=DV EVID MDV CMT TRTM F_LAG LOQS LOQSM
+            LOQP STUDY CENTER AGE SEX WEIGHT HEIGHT
+$DATA Suni_PK_final_raw.csv ; corrected dataset with split variables, BLQ exclusion equal for all tested methods
+
+IGNORE=C
+IGNORE(C.EQ.1)     ; Excluded Data records (no DV record, BLQ)
+IGNORE(SET_5.EQ.0) ; Analyse only test data for respective split
+$SUBROUTINE ADVAN6 TOL=4
+$MODEL      NCOMP=5 COMP=(DEPOT,DEFDOSE) ; Dosing compartment
+            COMP=(OBSLIV) ; Sunitinib central compartment
+            COMP=(PERISUN) ; Sunitinib peripheral compartment
+            COMP=(CENTRALM) ; SU12662 central compartment
+            COMP=(PERIM) ; SU12662 peripheral compartment
+$PK
+
+WT = WEIGHT
+IF(WEIGHT.EQ.-99.AND.SEX.EQ.1) WT = 83.26  ; Population mean training data - male (split 5)
+IF(WEIGHT.EQ.-99.AND.SEX.EQ.0) WT = 69.85  ; Population mean training data - female (split 5)
+ASCL   = (WT/70)**0.75
+ASV    = WT/70
+
+K12    = THETA(1)     
+V2     = THETA(2)*ASV * EXP(ETA(1))
+QH     = THETA(3)*ASCL
+CLP    = THETA(4)*ASCL* EXP(ETA(3))
+CLM    = THETA(5)*ASCL
+V3     = THETA(6)*ASV * EXP(ETA(2))
+Q34    = THETA(7)*ASCL 
+V4     = THETA(8)*ASV 
+FM     = THETA(9)      * EXP(ETA(4))
+Q25    = THETA(10)*ASCL    
+V5     = THETA(11)*ASV    
+
+K34 = Q34/V3
+K43 = Q34/V4
+K25 = Q25/V2
+K52 = Q25/V5
+
+S2 = V2
+S3 = V3
+
+$DES
+CLIV = (K12*A(1) + QH/V2*A(2))/(QH+CLP)
+
+DADT(1) = -K12*A(1)
+DADT(2) = QH*CLIV-QH/V2*A(2) - K25*A(2) + K52*A(5)
+DADT(3) = FM*CLP*CLIV-CLM/V3*A(3)-K34*A(3) + K43*A(4)
+DADT(4) = K34*A(3)-K43*A(4)
+DADT(5) = K25*A(2) - K52*A(5)
+
+$ERROR
+TY = LOG(F)
+IF(F.LT.0.001) TY = 0.001
+IPRED = TY
+EXPIPRED = EXP(IPRED)
+
+IF (CMT.EQ.2) THEN 
+W     = SQRT(THETA(12)**2) 
+Y     = IPRED+W*EPS(1)
+ENDIF
+   
+IF (CMT.EQ.3) THEN  
+W     = SQRT(THETA(13)**2) 
+Y     = IPRED+W*EPS(2)  
+ENDIF
+ 
+IRES = DV-IPRED
+  DEL            = 0
+  IF(W.EQ.0) DEL = 0.0001
+  IWRES           = IRES/(W+DEL)
+
+$THETA  (0,0.15726) ; 1 = K12  Absorption rate constant
+ (0,1779.89) ; 2 = V2  Central volume of distribution of sunitinib
+ 80 FIX ; 3 = QH  Hepatic blood flow X
+ (0,32.9314) ; 4 = CLP  Clearance of sunitinib
+ (0,16.458) ; 5 = CLM  Clearance of SU12662
+ (0,739.701) ; 6 = V3  Central volume of distribution of SU12662
+ (0,3.03858) ; 7 = Q34  Inter-compartmental clearance of SU12662
+ (0,624.277) ; 8 = V4  Peripheral volumes of distribution of SU12662
+ 0.21 FIX ; 9 = FM  Fraction of sunitinib converted to SU12662 X
+ (0,0.395864) ; 10 = Q25  Inter-compartmental clearance of Sunitinib; not in Yu
+ 588 FIX ; 11 = V5  Peripheral volumes of distribution of Sunitinib X
+ 0.347865 ; 12 =  Prop. Error Suni
+ 0.254666 ; 13 = Prop. Error Metab
+ 
+$OMEGA  BLOCK(4)
+ 0.0646833  ;   1 IIV V2
+ 0.0596407 0.142929  ;   2 IIV V3
+ 0 -0.0692007 0.0965848  ;  3 IIV CLP
+ 0 0 -0.0520589 0.135796  ;   4 IIV FM
+ 
+$SIGMA  1  FIX  ; Proportional error sunitinib
+ 1  FIX  ; Proportional error SU12662
+
+$ESTIMATION  METH=1 INTERACTION MAXEVAL=0 NOABORT PRINT=5 SIG=3 ; MAP estimation using FOCE-I for test data
+$TABLE      ID AMT TIME IPRED EXPIPRED PRED DV CMT MDV EVID ETA1 ETA2 ETA3 ETA4
+            NOPRINT ONEHEADER
+FILE= Suni_focei_sim_split_map_5.tab
