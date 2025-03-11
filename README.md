@@ -2,7 +2,7 @@
 
 ## Description
 
-Official repository for the *Scientific Machine learning for predicting plasma concentrations in anti-cancer therapy* paper . This repository contains the code for our MMPKsciML model and all the models tested in our [preprint](https://www.medrxiv.org/content/10.1101/2024.05.06.24306555v1.full.pdf+html).
+Official repository for the *Comparing Scientific Machine Learning With Population Pharmacokinetic and Classical Machine Learning Approaches for Prediction of Drug Concentrations* paper . This repository contains the code for our MMPKsciML model and all the models tested in our [paper](https://ascpt.onlinelibrary.wiley.com/doi/full/10.1002/psp4.13313).
 
 ## Download
 
